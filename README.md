@@ -45,16 +45,10 @@ Na **Sprint 1**, focamos na entrega do *Documento de Análise de Competidores* e
 
 | Nome Completo | E-mail Institucional | Papel / Responsabilidade |
 | :--- | :--- | :--- |
-| **André Augusto** | aaapn@cesar.school | Desenvolvedor |
-| **Arthur Casanova** | aca5@cesar.school | Desenvolvedor |
-| **Caio Ribeiro** | crlp@cesar.school | Desenvolvedor |
-| **Daniel Pereira** | dpgf@cesar.school | Desenvolvedor |
+| **André Augusto de Araújo** | aaapn@cesar.school | Desenvolvedor |
+| **Arthur Casanova de Azevedo** | aca5@cesar.school | Desenvolvedor |
+| **Caio Ribeiro Lima Pinheiro** | crlp@cesar.school | Desenvolvedor |
+| **Daniel Pereira Gomes de faria** | dpgf@cesar.school | Desenvolvedor |
 | **Eduardo Augusto Cordeiro dos Santos** | gfva@cesar.school | Desenvolvedor |
-| **Gabriel Feitosa** | gabriel.email@school.com | Desenvolvedor |
+| **Gabriel Feitosa Vieira Aragão** | gabriel.email@school.com | Desenvolvedor |
 | **Kauan Matheus da Silva Gomes** | kmsg@cesar.school | Desenvolvedor |
-
-### 🔄 Membros Anteriores
-
-| Nome Completo | E-mail Institucional | Data de Entrada | Data de Saída |
-| :--- | :--- | :--- | :--- |
-| *Nenhum membro anterior* | - | - | - |
