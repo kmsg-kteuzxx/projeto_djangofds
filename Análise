@@ -1,0 +1,146 @@
+# Análise de Competidores — BizúTech
+
+## 1. Introdução
+
+Este documento tem como propósito mapear o cenário competitivo para o projeto **BizúTech**, inspirado no modelo de negócio da Bzu Tech (Recife/PE), uma empresa de soluções IoT ponta a ponta — hardware, gateway e plataforma em nuvem (Bzu Cloud) — voltada ao monitoramento remoto em tempo real para os segmentos de Cadeia Fria, Indústria 4.0, Utilities (água, gás e energia), Cidades Inteligentes, Edifícios Inteligentes e Agronegócio.
+
+O escopo desta análise é avaliar cinco produtos concorrentes que também entregam monitoramento IoT (sensor → gateway/conectividade → nuvem → dashboard/alertas), comparando suas propostas de valor, funcionamento, pontos fortes e fracos, para embasar os requisitos do produto a ser construído pela equipe.
+
+**Produtos analisados:**
+- Produto A — NOVUS Automation / NOVUS Cloud
+- Produto B — TagoIO
+- Produto C — Ubidots
+- Produto D — Solinftec
+- Produto E — SyOS
+
+**Equipe do projeto:** Caio Ribeiro, Kauan Matheus, Gabriel Feitosa, Arthur Casanova, Eduardo Augusto, André Augusto e Daniel Pereira.
+
+---
+
+## 2. Produtos analisados
+
+### 2.1 Produto A — NOVUS Automation (NOVUS Cloud)
+
+#### 2.1.1 Visão geral
+A NOVUS é uma fabricante brasileira de instrumentos eletrônicos de automação (transmissores, data loggers, controladores e gateways) que também opera a **NOVUS Cloud**, uma plataforma IoT para visualização online dos dados coletados por seus próprios dispositivos. O público-alvo são empresas industriais e de infraestrutura crítica (farmacêutico, alimentício, data centers, energia, agronegócio) que precisam registrar e auditar variáveis como temperatura e umidade. É, entre os concorrentes analisados, o mais próximo do modelo "hardware + nuvem própria" do BizúTech.
+
+#### 2.1.2 Funcionamento
+Sensores e transmissores sem fio (ex.: RHT-Air, Climate Air+) enviam leituras via gateways (AirGate, DigiRail IoT) até a NOVUS Cloud, hospedada em servidor próprio e acessível de qualquer navegador ou dispositivo móvel. Os dados alimentam dashboards prontos ou customizáveis (conforme o plano contratado) e disparam alarmes por e-mail/SMS quando há desvios de processo.
+
+
+#### 2.1.3 Pontos fortes
+- Fabricante do próprio hardware, com décadas de experiência em instrumentação industrial (credibilidade técnica e calibração rastreável).
+- Portfólio amplo de sensores prontos para os principais segmentos de infraestrutura crítica.
+- Conectividade de ponta (NB-IoT, Cat-M1, MQTT) já embarcada nos dispositivos.
+
+#### 2.1.4 Pontos fracos
+- Plataforma pensada para funcionar melhor com o hardware próprio da NOVUS — integração com sensores de terceiros é mais limitada.
+- Dashboards básicos gratuitos são simples; personalização depende do plano de nuvem contratado.
+- Foco mais forte em indústria/infraestrutura do que em cidades inteligentes ou varejo.
+
+---
+
+### 2.2 Produto B — TagoIO
+
+#### 2.2.1 Visão geral
+A TagoIO é uma plataforma IoT de origem brasileira com atuação global, voltada a desenvolvedores, integradores e empresas que querem construir aplicações de monitoramento sem depender de hardware proprietário. Atende verticais como indústria (IIoT), edifícios inteligentes, energia/utilities e agricultura, com um modelo "traga seu próprio sensor".
+
+#### 2.2.2 Funcionamento
+Centenas de dispositivos de fabricantes parceiros (Dragino, Milesight, TEKTELIC, Novus, entre outros) já possuem conectores prontos ("parsers") para a plataforma. Os dados chegam via LoRaWAN, NB-IoT, Wi-Fi, celular ou satélite, são processados no backend da TagoIO (bancos de dados próprios, regras/automação) e exibidos em dashboards configuráveis, com alertas e um app mobile para acompanhar aplicações e receber notificações em tempo real.
+
+
+#### 2.2.3 Pontos fortes
+- Agnóstica de hardware: conecta sensores de centenas de fabricantes diferentes via múltiplos protocolos.
+- Cobertura de segmentos muito ampla (indústria, prédios, energia, agro), com soluções e widgets prontos para cada um.
+- Recursos avançados de backend (bancos de dados, automações, IA/MCP) voltados a quem quer escalar a aplicação.
+
+#### 2.2.4 Pontos fracos
+- Por ser uma plataforma "faça você mesmo", exige mais conhecimento técnico do cliente final do que uma solução totalmente gerenciada.
+- Não fabrica hardware próprio — depende da qualidade e suporte dos fabricantes parceiros dos sensores.
+- Curva de aprendizado maior para configurar parsers, regras e dashboards do zero.
+
+---
+
+### 2.3 Produto C — Ubidots
+
+#### 2.3.1 Visão geral
+A Ubidots é uma plataforma internacional de IoT (Application Enablement Platform) voltada a integradores de sistemas e pequenas/médias empresas que querem lançar rapidamente uma aplicação de monitoramento, sem construir todo o backend do zero. Atua em manufatura, agricultura, energia, saúde e cidades inteligentes.
+
+#### 2.3.2 Funcionamento
+Dispositivos de terceiros enviam dados por APIs (HTTP, MQTT) ou integrações prontas até a nuvem da Ubidots. A plataforma organiza os dados em dashboards "drag-and-drop", com motor de eventos/alertas, relatórios automáticos e recursos de white-label (o cliente final vê a marca do integrador, não a da Ubidots). Também oferece ambiente multi-tenant para gerenciar milhares de dispositivos de vários clientes a partir de uma única conta.
+
+#### 2.3.3 Pontos fortes
+- Interface de dashboards no-code muito elogiada, fácil de usar por quem não é desenvolvedor.
+- Suporte a white-label e multi-tenant, ideal para quem revende a solução para vários clientes.
+- Widgets com IA para criar páginas e componentes customizados.
+
+#### 2.3.4 Pontos fracos
+- Não fabrica hardware — depende inteiramente de sensores e gateways de terceiros.
+- Planos e preços não são totalmente públicos ("fale com vendas"), o que dificulta comparação direta de custo.
+- Por ser genérica (atende qualquer vertical), não entrega profundidade de domínio como soluções especializadas (ex.: agro ou cadeia fria).
+
+---
+
+### 2.4 Produto D — Solinftec
+
+#### 2.4.1 Visão geral
+A Solinftec é uma agtech brasileira de grande porte, hoje monitorando dezenas de milhares de máquinas agrícolas e milhões de hectares em diversos países. Seu público é o agronegócio de larga escala (cana, soja, milho, algodão, café, citros), com foco em operações de campo (plantio, pulverização, colheita, logística de grãos).
+
+#### 2.4.2 Funcionamento
+Dispositivos embarcados nas máquinas agrícolas, estações climáticas e sensores de campo enviam telemetria (combustível, rotação, produtividade, condições climáticas) via rede M2M própria até uma plataforma SaaS. A camada de inteligência artificial (Alice A.I.) cruza esses dados em tempo quase real para gerar alertas, roteirização e recomendações de operação, acessíveis via app e web.
+
+#### 2.4.3 Pontos fortes
+- Escala e maturidade de dados: opera em mais de dez países com uma base histórica enorme de telemetria agrícola.
+- IA aplicada de ponta a ponta (não só dashboards, mas recomendações e automação de decisões no campo).
+- Forte suporte local/presencial às equipes de operação, além da plataforma em nuvem.
+
+#### 2.4.4 Pontos fracos
+- Totalmente verticalizada em agronegócio — não atende cadeia fria, indústria, utilities ou cidades inteligentes.
+- Solução voltada a operações de grande escala (milhares de hectares/máquinas), pouco acessível para pequenos produtores ou outros setores.
+- Ecossistema fechado, pensado para o próprio hardware/telemetria da empresa.
+
+---
+
+### 2.5 Produto E — SyOS
+
+#### 2.5.1 Visão geral
+A SyOS é uma startup brasileira focada especificamente em monitoramento de cadeia fria 24/7 (alimentos, farmacêuticos, data centers), atendendo indústrias, centros de distribuição, transporte, varejo, supermercados, restaurantes, hospitais e laboratórios. É, dos cinco produtos analisados, o mais próximo do BizúTech em porte (startup) e em proposta (hardware + nuvem + app para monitoramento remoto).
+
+#### 2.5.2 Funcionamento
+Sensores sem fio (Bluetooth) são instalados em câmaras frias, freezers, geladeiras, balcões refrigerados, veículos e caixas térmicas. Os dados trafegam até a nuvem via Wi-Fi local (nas unidades) ou dados móveis (no transporte). Caso a conexão caia, o sensor mantém os dados em memória local e sincroniza automaticamente quando a rede retorna, sem abrir lacunas no histórico. Quedas de conexão ou energia geram notificação imediata no app.
+
+
+#### 2.5.3 Pontos fortes
+- Buffer offline com sincronização automática — não perde leituras em quedas de rede/energia, um diferencial técnico relevante.
+- Alertas multicanal, incluindo WhatsApp, além de app e web.
+- Segmentação clara por setor, ambiente e tipo de equipamento, facilitando a adoção por clientes de diferentes portes.
+
+#### 2.5.4 Pontos fracos
+- Foco exclusivo em cadeia fria — não cobre indústria 4.0, utilities, cidades ou agro.
+- Por ser Bluetooth-based, depende de proximidade/infraestrutura local (gateway/roteador) em cada ponto monitorado.
+- Startup menor, com portfólio de hardware mais restrito do que fabricantes estabelecidos como a NOVUS.
+
+---
+
+## 3. Benchmark
+
+| Critério | NOVUS Automation | TagoIO | Ubidots | Solinftec | SyOS |
+|---|---|---|---|---|---|
+| Hardware próprio | Sim | Não (integra terceiros) | Não (integra terceiros) | Sim | Sim |
+| Plataforma/nuvem própria | Sim (NOVUS Cloud) | Sim | Sim | Sim | Sim |
+| Segmentos atendidos | Indústria, infraestrutura crítica, energia, agro | Indústria, prédios, energia, agro | Indústria, agro, energia, saúde, cidades | Agronegócio (exclusivo) | Cadeia fria (exclusivo) |
+| Conectividade | Wi-Fi, NB-IoT, Cat-M1, MQTT | LoRaWAN, NB-IoT, Wi-Fi, celular, satélite | HTTP, MQTT, integrações diversas | Rede M2M própria | Bluetooth + Wi-Fi/celular |
+| Buffer offline / sincronização | Não divulgado | Não é o foco central | Não é o foco central | Não divulgado | Sim (diferencial) |
+| Alertas multicanal | E-mail/SMS | E-mail/push/app | E-mail/relatórios automáticos | App/web | E-mail/app/WhatsApp |
+| White-label / multi-tenant | Não | Sim (TagoRUN) | Sim (foco forte) | Não (uso interno da operação) | Não |
+| Porte da empresa | Grande fabricante estabelecido | Plataforma de médio/grande porte | Plataforma internacional de médio porte | Agtech de grande porte | Startup pequena/média |
+
+---
+
+## 4. Requisitos obtidos
+
+1. **Conectividade multi-protocolo** (LoRaWAN, NB-IoT/Cat-M, Wi-Fi e Bluetooth) para que o sensor se adapte ao ambiente de instalação, em vez de depender de uma única tecnologia de rede — recurso central em TagoIO e Solinftec.
+2. **Buffer local com sincronização automática** quando a conexão cair, evitando lacunas no histórico de leituras — diferencial observado na SyOS e ausente (ou não divulgado) na maioria dos concorrentes.
+3. **Motor de alertas configurável por limites (threshold)**, com notificação multicanal (e-mail, push, WhatsApp/SMS) e histórico de eventos de não conformidade — presente, em algum grau, em todos os concorrentes analisados.
+4. **API/webhooks abertos** para integração com sistemas externos (ERP, BI, plataformas de rastreabilidade), permitindo que o cliente use os dados fora do dashboard proprietário — ponto forte de NOVUS, TagoIO e Ubidots.
+5. **Requisito negativo — evitar vendor lock-in de hardware:** a plataforma não deve exigir sensores exclusivos e fechados; deve aceitar integração de dispositivos de terceiros via protocolos abertos (Modbus, MQTT), como fazem TagoIO e Ubidots, evitando a limitação observada em soluções 100% proprietárias (NOVUS, Solinftec, SyOS).
