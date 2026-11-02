@@ -122,6 +122,7 @@ O facilitador cadastra, edita, ativa/desativa e exclui cenários (com alternativ
 * **Regras:** 2 a 4 alternativas, exatamente uma marcada como solução IoT, custo, prejuízo que continua e horas perdidas/mês por alternativa.
 * **Ativo/desativado:** só cenários ativos aparecem para jogadores; desativar não apaga decisões nem altera partidas antigas. Cenário já jogado não pode ser excluído, só desativado.
 * Código em `simulador/gestao.py` (views em função, sem Django Forms) e templates `gestao_*.html`.
+
 🔗 **Área do facilitador:** https://projeto-djangofds.onrender.com/simulador/facilitador/
 
 ---
