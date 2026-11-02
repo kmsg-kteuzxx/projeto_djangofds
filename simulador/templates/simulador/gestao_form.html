@@ -1,0 +1,176 @@
+{% extends "simulador/base.html" %}
+
+{% block titulo %}{% if cenario %}Editar cenário {{ cenario.numero }}{% else %}Novo cenário{% endif %} · Simulador IoT{% endblock %}
+
+{% block cabecalho_direita %}
+  <nav>
+    <a href="{% url 'simulador:gestao_lista' %}">Cenários</a>
+    <a href="{% url 'simulador:inicio' %}">Ver simulador</a>
+  </nav>
+{% endblock %}
+
+{% block estilos %}
+<style>
+  .campo textarea, .campo select {
+    width: 100%; padding: 12px 14px; font-family: var(--fonte-texto); font-size: 1rem; color: var(--texto);
+    background: rgba(24, 14, 41, .7); border: 1px solid var(--borda); border-radius: var(--raio-pequeno);
+  }
+  .campo textarea { min-height: 96px; resize: vertical; }
+  .campo select { min-height: 52px; }
+  .campo textarea:focus, .campo select:focus { outline: none; border-color: var(--violeta); box-shadow: var(--brilho); }
+  .campo small { color: var(--suave); display: block; margin-top: 4px; }
+  .linhas { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+  .bloco-opcao { border-top: 1px solid var(--borda); padding-top: 18px; margin-top: 18px; }
+  .bloco-opcao:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+  .bloco-opcao h3 { display: flex; align-items: center; gap: 12px; }
+  .marca-iot { display: flex; align-items: center; gap: 10px; margin: 6px 0 14px; font-weight: 600; cursor: pointer; }
+  .marca-iot input { width: 20px; height: 20px; accent-color: var(--verde); }
+  .campo.check label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .campo.check input { width: 20px; height: 20px; min-height: 0; accent-color: var(--violeta); }
+  .lista-erros { margin: 0; padding-left: 20px; }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+<section class="estreito">
+  <span class="badge">Área do facilitador</span>
+  <h1>{% if cenario %}Editar cenário {{ cenario.numero }}{% else %}Novo cenário{% endif %}</h1>
+  <p class="lead">Transforme a dor relatada pelo cliente em uma situação jogável: o problema, as alternativas (uma delas com IoT) e o que a equipe diria.</p>
+
+  {% if erros %}
+    <div class="erro" role="alert">
+      <strong>Não foi possível salvar:</strong>
+      <ul class="lista-erros">{% for erro in erros %}<li>{{ erro }}</li>{% endfor %}</ul>
+    </div>
+  {% endif %}
+
+  <form method="post" novalidate
+        action="{% if cenario %}{% url 'simulador:gestao_editar' cenario.numero %}{% else %}{% url 'simulador:gestao_novo' %}{% endif %}">
+    {% csrf_token %}
+    <input type="hidden" name="total_vozes" value="{{ total_vozes }}">
+
+    <div class="card">
+      <h2 style="margin-top:0">O problema</h2>
+      <div class="campo">
+        <label for="titulo">Título</label>
+        <input id="titulo" name="titulo" maxlength="120" value="{{ valores.titulo }}" placeholder="Ex.: Câmara fria sem alarme">
+      </div>
+      <div class="linhas">
+        <div class="campo">
+          <label for="setor">Setor</label>
+          <input id="setor" name="setor" maxlength="60" value="{{ valores.setor }}" placeholder="Ex.: Cadeia fria">
+        </div>
+        <div class="campo">
+          <label for="trilha">Trilha</label>
+          <select id="trilha" name="trilha"{% if trilha_travada %} disabled{% endif %}>
+            <option value="">Escolha...</option>
+            {% for trilha in trilhas %}
+              <option value="{{ trilha.slug }}"{% if valores.trilha == trilha.slug %} selected{% endif %}>{{ trilha.nome }}</option>
+            {% endfor %}
+          </select>
+          {% if trilha_travada %}<small>Este cenário já foi jogado, então a trilha não muda.</small>{% endif %}
+        </div>
+        <div class="campo">
+          <label for="ordem">Posição na trilha</label>
+          <input id="ordem" name="ordem" inputmode="numeric" value="{{ valores.ordem }}" placeholder="Em branco = no final">
+        </div>
+      </div>
+      <div class="campo">
+        <label for="problema">Descrição do problema</label>
+        <textarea id="problema" name="problema">{{ valores.problema }}</textarea>
+      </div>
+      <div class="campo">
+        <label for="perda_atual">Prejuízo mensal estimado (R$)</label>
+        <input id="perda_atual" name="perda_atual" inputmode="numeric" value="{{ valores.perda_atual }}" placeholder="Ex.: 18000">
+      </div>
+      <div class="campo check">
+        <label><input type="checkbox" name="ativo"{% if valores.ativo %} checked{% endif %}> Ativo (aparece para os jogadores)</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Conceito de IoT (aparece no relatório)</h2>
+      <div class="campo">
+        <label for="conceito_titulo">Título do conceito</label>
+        <input id="conceito_titulo" name="conceito_titulo" maxlength="120" value="{{ valores.conceito_titulo }}" placeholder="Ex.: Monitoramento remoto de temperatura">
+      </div>
+      <div class="campo">
+        <label for="conceito_resumo">Resumo</label>
+        <textarea id="conceito_resumo" name="conceito_resumo">{{ valores.conceito_resumo }}</textarea>
+      </div>
+      <div class="campo">
+        <label for="conceito_passos">Como funciona (um passo por linha)</label>
+        <textarea id="conceito_passos" name="conceito_passos">{{ valores.conceito_passos }}</textarea>
+      </div>
+      <div class="campo">
+        <label for="conceito_economia">Onde está a economia</label>
+        <textarea id="conceito_economia" name="conceito_economia">{{ valores.conceito_economia }}</textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Alternativas ({{ min_opcoes }} a {{ max_opcoes }})</h2>
+      <p class="suave">Preencha em ordem. Deixe em branco as linhas que não for usar. Marque <strong>exatamente uma</strong> como a solução IoT.</p>
+      {% for op in valores.opcoes %}
+        <div class="bloco-opcao">
+          <h3><span class="etiqueta">Alternativa {{ op.letra|upper }}</span></h3>
+          <div class="campo">
+            <label for="op_{{ op.letra }}_texto">Texto da alternativa</label>
+            <input id="op_{{ op.letra }}_texto" name="op_{{ op.letra }}_texto" maxlength="200" value="{{ op.texto }}">
+          </div>
+          <div class="linhas">
+            <div class="campo">
+              <label for="op_{{ op.letra }}_custo">Custo (R$/mês)</label>
+              <input id="op_{{ op.letra }}_custo" name="op_{{ op.letra }}_custo" inputmode="numeric" value="{{ op.custo }}">
+            </div>
+            <div class="campo">
+              <label for="op_{{ op.letra }}_perda_restante">Prejuízo que continua (R$/mês)</label>
+              <input id="op_{{ op.letra }}_perda_restante" name="op_{{ op.letra }}_perda_restante" inputmode="numeric" value="{{ op.perda_restante }}">
+            </div>
+            <div class="campo">
+              <label for="op_{{ op.letra }}_horas_perdidas">Horas perdidas/mês</label>
+              <input id="op_{{ op.letra }}_horas_perdidas" name="op_{{ op.letra }}_horas_perdidas" inputmode="numeric" value="{{ op.horas_perdidas }}" placeholder="0">
+            </div>
+          </div>
+          <div class="campo">
+            <label for="op_{{ op.letra }}_explicacao">O que acontece com essa escolha</label>
+            <textarea id="op_{{ op.letra }}_explicacao" name="op_{{ op.letra }}_explicacao">{{ op.explicacao }}</textarea>
+          </div>
+          <label class="marca-iot">
+            <input type="radio" name="iot" value="{{ op.letra }}"{% if valores.iot == op.letra %} checked{% endif %}>
+            Esta é a solução IoT
+          </label>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">O que a equipe diz</h2>
+      <p class="suave">Opiniões que aparecem na tela do cenário. Linhas vazias são ignoradas.</p>
+      {% for voz in valores.vozes %}
+        <div class="bloco-opcao">
+          <div class="linhas">
+            <div class="campo">
+              <label for="voz_{{ forloop.counter0 }}_nome">Nome</label>
+              <input id="voz_{{ forloop.counter0 }}_nome" name="voz_{{ forloop.counter0 }}_nome" maxlength="60" value="{{ voz.nome }}">
+            </div>
+            <div class="campo">
+              <label for="voz_{{ forloop.counter0 }}_papel">Cargo</label>
+              <input id="voz_{{ forloop.counter0 }}_papel" name="voz_{{ forloop.counter0 }}_papel" maxlength="60" value="{{ voz.papel }}">
+            </div>
+          </div>
+          <div class="campo">
+            <label for="voz_{{ forloop.counter0 }}_fala">Fala</label>
+            <textarea id="voz_{{ forloop.counter0 }}_fala" name="voz_{{ forloop.counter0 }}_fala" style="min-height:64px">{{ voz.fala }}</textarea>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="acoes direita">
+      <a class="botao secundario" href="{% url 'simulador:gestao_lista' %}">Cancelar</a>
+      <button type="submit" class="botao">Salvar</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

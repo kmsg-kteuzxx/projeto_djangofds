@@ -114,6 +114,17 @@ Na segunda sprint, focamos em colocar a aplicação no ar usando a plataforma **
 
 ---
 
+### Entrega 04 – Gestão de cenários pelo facilitador (História 4)
+
+O facilitador cadastra, edita, ativa/desativa e exclui cenários (com alternativas e opiniões da equipe) pelo próprio sistema, em `/simulador/facilitador/`.
+
+* **Acesso:** só superusuário ou usuário do grupo **Facilitadores** (criado pela migração `0006`; vincule o usuário em `/admin/`). Sem login, vai para a tela de login; logado sem permissão, recebe 403.
+* **Regras:** 2 a 4 alternativas, exatamente uma marcada como solução IoT, custo, prejuízo que continua e horas perdidas/mês por alternativa.
+* **Ativo/desativado:** só cenários ativos aparecem para jogadores; desativar não apaga decisões nem altera partidas antigas. Cenário já jogado não pode ser excluído, só desativado.
+* Código em `simulador/gestao.py` (views em função, sem Django Forms) e templates `gestao_*.html`.
+
+---
+
 ## ▶️ Como rodar o projeto
 
 ```bash

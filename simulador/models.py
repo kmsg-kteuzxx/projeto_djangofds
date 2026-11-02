@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 
 
 class Trilha(models.Model):
@@ -19,7 +20,8 @@ class Trilha(models.Model):
         return self.nome
 
     def primeiro_cenario(self):
-        return self.cenarios.first()
+        """Primeiro cenário ATIVO da trilha (cenário desativado não aparece para jogadores)."""
+        return self.cenarios.filter(ativo=True).first()
 
 
 class Cenario(models.Model):
@@ -34,6 +36,10 @@ class Cenario(models.Model):
     titulo = models.CharField(max_length=120)
     problema = models.TextField()
     perda_atual = models.PositiveIntegerField(help_text="Prejuízo atual em R$ por mês")
+    ativo = models.BooleanField(
+        default=True,
+        help_text="Só cenários ativos aparecem para os jogadores. Desativar não apaga as decisões já tomadas.",
+    )
 
     # Conceito de IoT explicado no relatório de aprendizado
     conceito_titulo = models.CharField(max_length=120)
@@ -72,8 +78,8 @@ class Cenario(models.Model):
         return self.opcoes.filter(usa_iot=True).first()
 
     def proximo(self):
-        """Próxima rodada da mesma trilha (ou None se esta é a última)."""
-        return Cenario.objects.filter(trilha=self.trilha, ordem__gt=self.ordem).first()
+        """Próxima rodada ATIVA da mesma trilha (ou None se esta é a última)."""
+        return Cenario.objects.filter(trilha=self.trilha, ordem__gt=self.ordem, ativo=True).first()
 
 
 class Voz(models.Model):
@@ -102,6 +108,9 @@ class Opcao(models.Model):
     texto = models.CharField(max_length=200)
     custo = models.PositiveIntegerField(help_text="Custo da solução em R$ por mês")
     perda_restante = models.PositiveIntegerField(help_text="Prejuízo que continua em R$ por mês")
+    horas_perdidas = models.PositiveIntegerField(
+        default=0, help_text="Horas de operação que continuam sendo perdidas por mês"
+    )
     usa_iot = models.BooleanField(default=False)
     explicacao = models.TextField()
 
@@ -147,11 +156,19 @@ class Rodada(models.Model):
         return self.finalizada_em is not None
 
     def cenarios(self):
-        """Cenários desta partida: os da trilha escolhida (ou os respondidos, nas
-        partidas antigas, de antes das trilhas existirem)."""
-        if self.trilha_id:
-            return Cenario.objects.filter(trilha_id=self.trilha_id)
-        return Cenario.objects.filter(id__in=self.decisoes.values_list("cenario_id", flat=True))
+        """
+        Cenários desta partida.
+        - Partida finalizada (ou antiga, sem trilha): só os que o jogador respondeu. Assim,
+          cadastrar, editar a ordem ou desativar cenários depois não muda uma partida antiga.
+        - Partida em andamento: os cenários ATIVOS da trilha escolhida, mais os que o jogador
+          já respondeu (mesmo que o facilitador tenha desativado no meio do caminho).
+        """
+        respondidos = self.decisoes.values_list("cenario_id", flat=True)
+        if self.trilha_id and not self.finalizada:
+            return Cenario.objects.filter(
+                Q(trilha_id=self.trilha_id, ativo=True) | Q(id__in=respondidos)
+            )
+        return Cenario.objects.filter(id__in=respondidos)
 
     def resultado_total(self):
         return sum(d.opcao.resultado for d in self.decisoes.select_related("opcao__cenario"))

@@ -20,6 +20,7 @@
       <div class="numeros">
         <span>Custo <span class="valor">{{ item.impacto.custo_fmt }}</span></span>
         <span>Prejuízo que continua <span class="valor negativo">{{ item.impacto.perda_restante_fmt }}</span></span>
+        {% if item.opcao.horas_perdidas %}<span>Horas perdidas <span class="valor negativo">{{ item.opcao.horas_perdidas }} h/mês</span></span>{% endif %}
         <span>Resultado <span class="valor {% if item.impacto.positivo %}positivo{% else %}negativo{% endif %}">{% if item.impacto.positivo %}+{% endif %}{{ item.impacto.resultado_fmt }}</span></span>
       </div>
       <p><strong>{% if item.melhor %}Por que é a melhor:{% else %}O que acontece:{% endif %}</strong> {{ item.opcao.explicacao }}</p>

@@ -1,0 +1,96 @@
+{% extends "simulador/base.html" %}
+
+{% block titulo %}Gestão de cenários · Simulador IoT{% endblock %}
+
+{% block cabecalho_direita %}
+  <nav>
+    <a href="{% url 'simulador:gestao_lista' %}">Cenários</a>
+    <a href="{% url 'simulador:inicio' %}">Ver simulador</a>
+    <form method="post" action="{% url 'simulador:logout_facilitador' %}" style="display:inline">
+      {% csrf_token %}
+      <button type="submit" class="link-sair">Sair</button>
+    </form>
+  </nav>
+{% endblock %}
+
+{% block estilos %}
+<style>
+  .link-sair { background: none; border: none; cursor: pointer; margin-left: 20px; padding: 0; font: 500 1rem var(--fonte-texto); color: var(--suave); }
+  .link-sair:hover { color: var(--texto); }
+  .mensagem { padding: 12px 16px; border-radius: var(--raio-pequeno); margin-bottom: 16px; border: 1px solid rgba(16, 185, 129, .5); background: rgba(16, 185, 129, .12); color: #A7F3D0; }
+  .mensagem.error { border-color: rgba(239, 68, 68, .5); background: rgba(239, 68, 68, .12); color: #FECACA; }
+  .topo-gestao { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+  .topo-gestao h1 { margin: 0; }
+  table.ranking td.acoes-linha { white-space: nowrap; text-align: right; }
+  table.ranking td.acoes-linha form { display: inline; }
+  .botao-mini { background: none; border: 1px solid var(--borda); color: var(--texto); border-radius: 999px; padding: 5px 12px; font: 500 .85rem var(--fonte-texto); cursor: pointer; text-decoration: none; display: inline-block; margin-left: 4px; }
+  .botao-mini:hover { background: var(--card-hover); color: var(--texto); }
+  .botao-mini.perigo { border-color: rgba(239, 68, 68, .5); color: #FECACA; }
+  tr.inativo td { opacity: .6; }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+<section>
+  <div class="topo-gestao">
+    <div>
+      <span class="badge">Área do facilitador</span>
+      <h1>Gestão de cenários</h1>
+      <p class="suave" style="margin:0">{{ total_ativos }} de {{ cenarios|length }} cenários ativos para os jogadores.</p>
+    </div>
+    <a class="botao" href="{% url 'simulador:gestao_novo' %}">Novo cenário</a>
+  </div>
+
+  <div style="margin-top:24px">
+    {% for mensagem in messages %}
+      <div class="mensagem {{ mensagem.tags }}" role="status">{{ mensagem }}</div>
+    {% endfor %}
+  </div>
+
+  {% if cenarios %}
+    <div class="card tabela-rolavel">
+      <table class="ranking">
+        <thead>
+          <tr>
+            <th>Nº</th>
+            <th>Trilha · rodada</th>
+            <th>Título</th>
+            <th class="num">Alternativas</th>
+            <th class="num">Jogadas</th>
+            <th>Situação</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in cenarios %}
+            <tr{% if not c.ativo %} class="inativo"{% endif %}>
+              <td>{{ c.numero }}</td>
+              <td>{{ c.trilha.nome|default:"Sem trilha" }} · {{ c.ordem }}</td>
+              <td>{{ c.titulo }}<br><small class="suave">{{ c.setor }}</small></td>
+              <td class="num">{{ c.n_opcoes }}</td>
+              <td class="num">{{ c.n_decisoes }}</td>
+              <td>{% if c.ativo %}<span class="etiqueta verde">Ativo</span>{% else %}<span class="etiqueta vermelha">Desativado</span>{% endif %}</td>
+              <td class="acoes-linha">
+                <a class="botao-mini" href="{% url 'simulador:gestao_editar' c.numero %}">Editar</a>
+                <form method="post" action="{% url 'simulador:gestao_alternar' c.numero %}">
+                  {% csrf_token %}
+                  <button type="submit" class="botao-mini">{% if c.ativo %}Desativar{% else %}Ativar{% endif %}</button>
+                </form>
+                {% if not c.n_decisoes %}
+                  <form method="post" action="{% url 'simulador:gestao_excluir' c.numero %}"
+                        onsubmit="return confirm('Excluir o cenário {{ c.numero }}? Isso não pode ser desfeito.')">
+                    {% csrf_token %}
+                    <button type="submit" class="botao-mini perigo">Excluir</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="card centro"><p style="margin:0">Nenhum cenário cadastrado ainda.</p></div>
+  {% endif %}
+</section>
+{% endblock %}

@@ -11,6 +11,7 @@ Regras da disciplina seguidas aqui:
 - Sem Django Forms: os dados vêm direto de request.POST e são validados à mão.
 - Todas as histórias leem e/ou gravam no banco de dados.
 """
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -78,6 +79,20 @@ def proximo_cenario_pendente(rodada):
     return rodada.cenarios().exclude(id__in=list(respondidos)).first()
 
 
+def rodadas_por_trilha():
+    """Quantas rodadas a maior trilha tem hoje (só cenários ativos). Padrão: 5."""
+    contagens = Trilha.objects.annotate(
+        n=Count("cenarios", filter=Q(cenarios__ativo=True))
+    ).values_list("n", flat=True)
+    return max(contagens, default=0) or RODADAS_POR_TRILHA
+
+
+def posicao_na_rodada(rodada, cenario_atual):
+    """Posição (1, 2, 3...) do cenário entre os da partida, já contando só os ativos."""
+    ids = list(rodada.cenarios().values_list("id", flat=True))
+    return ids.index(cenario_atual.id) + 1 if cenario_atual.id in ids else cenario_atual.ordem
+
+
 def minutos_estimados(total_cenarios):
     """Tempo estimado da simulação (cerca de 1 minuto por rodada + leitura)."""
     return max(3, total_cenarios + 1)
@@ -118,7 +133,7 @@ def exige_trilha(request):
 
 def inicio(request):
     """T1: tela de abertura do simulador."""
-    total = RODADAS_POR_TRILHA
+    total = rodadas_por_trilha()
     return render(request, "simulador/inicio.html", {
         "total": total,
         "total_trilhas": Trilha.objects.count(),
@@ -128,7 +143,7 @@ def inicio(request):
 
 
 def _tela_como_funciona(request, erros=None, valores=None):
-    total = RODADAS_POR_TRILHA
+    total = rodadas_por_trilha()
     return render(request, "simulador/como_funciona.html", {
         "total": total,
         "minutos": minutos_estimados(total),
@@ -221,6 +236,12 @@ def cenario(request, numero):
         if pendente is None:
             return redirect("simulador:relatorio")
         return redirect("simulador:cenario", numero=pendente.numero)
+    if not cenario_atual.ativo and not rodada.decisoes.filter(cenario=cenario_atual).exists():
+        # Cenário desativado pelo facilitador: segue para a próxima rodada que está valendo.
+        pendente = proximo_cenario_pendente(rodada)
+        if pendente is None:
+            return redirect("simulador:relatorio")
+        return redirect("simulador:cenario", numero=pendente.numero)
     erro = None
 
     if request.method == "POST":
@@ -236,7 +257,7 @@ def cenario(request, numero):
         erro = "Escolha uma das alternativas para continuar."
 
     total = rodada.cenarios().count()
-    posicao = cenario_atual.ordem
+    posicao = posicao_na_rodada(rodada, cenario_atual)
     return render(request, "simulador/cenario.html", {
         "cenario": cenario_atual,
         "vozes": cenario_atual.vozes.all(),
@@ -290,7 +311,7 @@ def resultado(request, numero):
         texto_ganho = "Prejuízo a mais que a IoT evitaria"
 
     total = rodada.cenarios().count()
-    posicao = cenario_atual.ordem
+    posicao = posicao_na_rodada(rodada, cenario_atual)
 
     return render(request, "simulador/resultado.html", {
         "cenario": cenario_atual,
@@ -305,7 +326,7 @@ def resultado(request, numero):
         "total": total,
         "trilha": rodada.trilha,
         "pontos": pontos_de_progresso(posicao, total),
-        "ultima": cenario_atual.proximo() is None,
+        "ultima": proximo_cenario_pendente(rodada) is None,
     })
 
 

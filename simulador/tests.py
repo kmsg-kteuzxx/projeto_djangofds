@@ -6,10 +6,11 @@ Para rodar:  python manage.py test simulador
 O banco de teste é criado com as migrações, então os cenários iniciais
 (migração 0002) já estão disponíveis.
 """
+from django.contrib.auth.models import Group, User
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Cenario, Decisao, Rodada, Trilha
+from .models import Cenario, Decisao, Opcao, Rodada, Trilha, Voz
 from .views import CHAVE_RODADA, reais
 
 
@@ -387,3 +388,280 @@ class T5T6ProgressoERevisaoTest(Base):
         resposta = self.jogar_rodada(usar_iot=True, trilha="publica")
         self.assertContains(resposta, "Você escolheu a melhor opção", count=5)
         self.assertContains(resposta, "nas 5 rodadas")
+
+
+# ---------------------------------------------------------------- História 4
+
+class H4GestaoDeCenariosTest(Base):
+    """História 4: gestão de cenários pelo facilitador."""
+
+    def setUp(self):
+        self.facilitador = User.objects.create_user("fac", password="senha-forte-123")
+        self.facilitador.groups.add(Group.objects.get(name="Facilitadores"))
+        self.client.login(username="fac", password="senha-forte-123")
+
+    def dados(self, **extra):
+        """POST de um cenário válido: 3 alternativas (a solução IoT é a B) e 1 opinião."""
+        dados = {
+            "titulo": "Câmara fria sem alarme", "setor": "Cadeia fria", "trilha": "saude", "ordem": "",
+            "problema": "A temperatura sobe à noite e ninguém percebe.", "perda_atual": "18000",
+            "conceito_titulo": "Alerta remoto", "conceito_resumo": "Sensor avisa no celular.",
+            "conceito_passos": "Medir\nAvisar", "conceito_economia": "Evita perda de produto.",
+            "ativo": "on", "iot": "b", "total_vozes": "1",
+            "voz_0_nome": "Alex", "voz_0_papel": "Gerente", "voz_0_fala": "Perdemos estoque de novo.",
+        }
+        for letra, texto, custo, restante, horas in [
+            ("a", "Não fazer nada", "0", "18000", "40"),
+            ("b", "Sensor com alerta", "900", "1000", "2"),
+            ("c", "Contratar vigia noturno", "4000", "9000", "10"),
+        ]:
+            dados.update({
+                f"op_{letra}_texto": texto, f"op_{letra}_custo": custo,
+                f"op_{letra}_perda_restante": restante, f"op_{letra}_horas_perdidas": horas,
+                f"op_{letra}_explicacao": f"Explicação da {letra}.",
+            })
+        dados.update(extra)
+        return dados
+
+    def salvar(self, **extra):
+        return self.client.post(reverse("simulador:gestao_novo"), self.dados(**extra))
+
+    def cenario_novo(self):
+        return Cenario.objects.get(titulo="Câmara fria sem alarme")
+
+    # 4.1
+    def test_cadastrar_cenario_grava_opcoes_voz_e_aparece_na_lista(self):
+        resposta = self.salvar()
+        self.assertRedirects(resposta, reverse("simulador:gestao_lista"))
+        cenario = self.cenario_novo()
+        self.assertTrue(cenario.ativo)
+        self.assertEqual(cenario.trilha.slug, "saude")
+        self.assertEqual(cenario.ordem, 6)  # vai para o fim da trilha (que já tinha 5)
+        self.assertEqual(cenario.opcoes.count(), 3)
+        self.assertEqual(cenario.opcao_iot().letra, "b")
+        self.assertEqual(cenario.opcoes.get(letra="a").horas_perdidas, 40)
+        self.assertEqual(cenario.vozes.get().nome, "Alex")
+        self.assertContains(self.client.get(reverse("simulador:gestao_lista")), "Câmara fria sem alarme")
+
+    def test_cenario_novo_aparece_para_o_jogador_na_trilha(self):
+        self.salvar()
+        self.client.logout()
+        self.comecar()
+        cenario = self.cenario_novo()
+        for existente in Cenario.objects.filter(trilha__slug="saude").exclude(id=cenario.id):
+            self.responder(existente.numero, "a")
+        resposta = self.client.get(reverse("simulador:cenario", args=[cenario.numero]))
+        self.assertContains(resposta, "Rodada 6 de 6")
+        self.assertContains(resposta, "Sensor com alerta")
+
+    # 4.2
+    def test_sem_solucao_iot_mostra_erro_e_nao_grava(self):
+        resposta = self.salvar(iot="")
+        self.assertContains(resposta, "Marque uma alternativa como solução IoT.")
+        self.assertFalse(Cenario.objects.filter(titulo="Câmara fria sem alarme").exists())
+
+    def test_iot_marcada_em_linha_vazia_conta_como_sem_iot(self):
+        resposta = self.salvar(iot="d")
+        self.assertContains(resposta, "Marque uma alternativa como solução IoT.")
+
+    # 4.3
+    def test_so_uma_alternativa_mostra_erro_e_mantem_o_que_foi_digitado(self):
+        dados = self.dados()
+        for chave in [k for k in dados if k.startswith(("op_b_", "op_c_"))]:
+            dados[chave] = ""
+        dados["iot"] = "a"
+        resposta = self.client.post(reverse("simulador:gestao_novo"), dados)
+        self.assertContains(resposta, "Cadastre pelo menos 2 alternativas.")
+        self.assertContains(resposta, "Câmara fria sem alarme")  # título continua no campo
+        self.assertContains(resposta, 'value="18000"')
+        self.assertContains(resposta, "Não fazer nada")
+        self.assertFalse(Cenario.objects.filter(titulo="Câmara fria sem alarme").exists())
+
+    def test_alternativas_puladas_sao_recusadas(self):
+        dados = self.dados(op_b_texto="", op_b_custo="", op_b_perda_restante="",
+                           op_b_horas_perdidas="", op_b_explicacao="", iot="c")
+        resposta = self.client.post(reverse("simulador:gestao_novo"), dados)
+        self.assertContains(resposta, "sem pular linhas")
+
+    def test_campos_numericos_invalidos_e_obrigatorios(self):
+        resposta = self.salvar(perda_atual="abc", titulo="", op_a_custo="-5")
+        self.assertContains(resposta, "Prejuízo mensal estimado (R$): use um número inteiro")
+        self.assertContains(resposta, "Título: preencha este campo.")
+        self.assertContains(resposta, "Alternativa A, custo (R$/mês): use um número inteiro")
+        self.assertEqual(Cenario.objects.count(), 30)
+
+    def test_opiniao_meio_preenchida_e_erro_e_linha_vazia_e_ignorada(self):
+        resposta = self.salvar(total_vozes="2", voz_1_nome="Bia", voz_1_papel="", voz_1_fala="")
+        self.assertContains(resposta, "Opinião da equipe 2")
+        self.assertEqual(Cenario.objects.count(), 30)
+        self.salvar(total_vozes="2", voz_1_nome="", voz_1_papel="", voz_1_fala="")
+        self.assertEqual(self.cenario_novo().vozes.count(), 1)
+
+    # 4.4
+    def test_editar_atualiza_o_valor_para_os_novos_jogadores(self):
+        self.salvar()
+        cenario = self.cenario_novo()
+        resposta = self.client.post(
+            reverse("simulador:gestao_editar", args=[cenario.numero]), self.dados(perda_atual="25000")
+        )
+        self.assertRedirects(resposta, reverse("simulador:gestao_lista"))
+        cenario.refresh_from_db()
+        self.assertEqual(cenario.perda_atual, 25000)
+        self.assertEqual(cenario.opcoes.count(), 3)
+        self.assertEqual(cenario.vozes.count(), 1)
+
+    def test_tela_de_edicao_vem_preenchida(self):
+        resposta = self.client.get(reverse("simulador:gestao_editar", args=[1]))
+        cenario = Cenario.objects.get(numero=1)
+        self.assertContains(resposta, cenario.titulo)
+        self.assertContains(resposta, cenario.opcoes.first().texto)
+
+    def test_editar_nao_apaga_decisoes_de_quem_ja_jogou(self):
+        self.client.logout()
+        self.comecar()
+        self.responder(1, "b")
+        self.client.login(username="fac", password="senha-forte-123")
+        cenario = Cenario.objects.get(numero=1)
+        dados = self.dados(titulo=cenario.titulo, trilha="saude", ordem="1", iot=cenario.opcao_iot().letra)
+        for opcao in cenario.opcoes.all():  # reaproveita as alternativas existentes
+            for campo, valor in [("texto", opcao.texto), ("custo", opcao.custo),
+                                 ("perda_restante", opcao.perda_restante), ("explicacao", opcao.explicacao)]:
+                dados[f"op_{opcao.letra}_{campo}"] = str(valor)
+        resposta = self.client.post(reverse("simulador:gestao_editar", args=[1]), dados)
+        self.assertRedirects(resposta, reverse("simulador:gestao_lista"))
+        self.assertEqual(Decisao.objects.count(), 1)
+
+    def test_nao_remove_alternativa_ja_escolhida_por_jogadores(self):
+        self.client.logout()
+        self.comecar()
+        self.responder(1, "c")
+        self.client.login(username="fac", password="senha-forte-123")
+        cenario = Cenario.objects.get(numero=1)
+        dados = self.dados(titulo=cenario.titulo, iot="a")
+        for chave in [k for k in dados if k.startswith("op_c_")]:
+            dados[chave] = ""
+        resposta = self.client.post(reverse("simulador:gestao_editar", args=[1]), dados)
+        self.assertContains(resposta, "já foi escolhida por jogadores")
+        self.assertTrue(Opcao.objects.filter(cenario=cenario, letra="c").exists())
+        self.assertEqual(Decisao.objects.count(), 1)
+
+    # 4.5
+    def test_desativar_some_para_novas_rodadas_mas_o_relatorio_antigo_continua(self):
+        # Maria joga a trilha inteira
+        maria = self.jogar_rodada(jogador="Maria", empresa="Mercado Boa Vista")
+        self.assertContains(maria, "Maria")
+        decisoes_antes = Decisao.objects.count()
+        rodada_maria = Rodada.objects.get(jogador="Maria")
+        pontos_antes = rodada_maria.pontuacao()
+        self.client.logout()
+
+        self.client.login(username="fac", password="senha-forte-123")
+        resposta = self.client.post(reverse("simulador:gestao_alternar", args=[1]))
+        self.assertRedirects(resposta, reverse("simulador:gestao_lista"))
+        self.assertFalse(Cenario.objects.get(numero=1).ativo)
+        self.client.logout()
+
+        # decisões e partida antiga não mudam
+        self.assertEqual(Decisao.objects.count(), decisoes_antes)
+        rodada_maria.refresh_from_db()
+        self.assertEqual(rodada_maria.pontuacao(), pontos_antes)
+        self.assertEqual(rodada_maria.cenarios().count(), 5)
+        relatorio = self.client.get(reverse("simulador:rodada", args=[rodada_maria.id]))
+        self.assertEqual(relatorio.status_code, 200)
+        self.assertEqual(relatorio.context["total"], 5)
+
+        # nova rodada: o cenário 1 não aparece; a trilha passa a ter 4 rodadas
+        segundo = self.cenarios_da_trilha().exclude(numero=1)[0]
+        self.comecar(jogador="Joana", empresa="Clínica Sol")
+        resposta = self.client.get(reverse("simulador:cenario", args=[1]))
+        self.assertRedirects(resposta, reverse("simulador:cenario", args=[segundo.numero]))
+        resposta = self.client.get(reverse("simulador:cenario", args=[segundo.numero]))
+        self.assertContains(resposta, "Rodada 1 de 4")  # posição recalculada sem o desativado
+
+    def test_jogador_no_meio_da_partida_continua_apos_cenario_ser_desativado(self):
+        self.comecar()
+        primeiro, segundo, terceiro = self.cenarios_da_trilha()[:3]
+        self.responder(primeiro.numero, "a")
+        Cenario.objects.filter(id=segundo.id).update(ativo=False)
+        resposta = self.client.get(reverse("simulador:progresso"))
+        self.assertContains(resposta, "1 de 4 rodadas")
+        resposta = self.client.get(reverse("simulador:cenario", args=[segundo.numero]))
+        self.assertRedirects(resposta, reverse("simulador:cenario", args=[terceiro.numero]))
+
+    def test_ativar_de_volta_e_recusado_se_o_cenario_estiver_incompleto(self):
+        cenario = Cenario.objects.get(numero=1)
+        cenario.opcoes.update(usa_iot=False)
+        cenario.ativo = False
+        cenario.save()
+        self.client.post(reverse("simulador:gestao_alternar", args=[1]))
+        cenario.refresh_from_db()
+        self.assertFalse(cenario.ativo)
+        cenario.opcoes.filter(letra="a").update(usa_iot=True)
+        self.client.post(reverse("simulador:gestao_alternar", args=[1]))
+        cenario.refresh_from_db()
+        self.assertTrue(cenario.ativo)
+
+    def test_excluir_so_cenario_que_ninguem_jogou(self):
+        self.salvar()
+        novo = self.cenario_novo()
+        self.client.post(reverse("simulador:gestao_excluir", args=[novo.numero]))
+        self.assertFalse(Cenario.objects.filter(id=novo.id).exists())
+        self.assertEqual(Voz.objects.filter(nome="Alex", cenario=novo).count(), 0)
+
+        self.client.logout()
+        self.comecar()
+        self.responder(1, "a")
+        self.client.login(username="fac", password="senha-forte-123")
+        self.client.post(reverse("simulador:gestao_excluir", args=[1]))
+        self.assertTrue(Cenario.objects.filter(numero=1).exists())
+        self.assertEqual(Decisao.objects.count(), 1)
+
+    # 4.6
+    def test_sem_login_vai_para_a_tela_de_login(self):
+        self.client.logout()
+        for nome, args in [("gestao_lista", []), ("gestao_novo", []), ("gestao_editar", [1])]:
+            url = reverse(f"simulador:{nome}", args=args)
+            self.assertRedirects(
+                self.client.get(url), f"{reverse('simulador:login_facilitador')}?next={url}",
+            )
+
+    def test_acoes_de_gestao_sem_login_nao_alteram_nada(self):
+        self.client.logout()
+        self.client.post(reverse("simulador:gestao_alternar", args=[1]))
+        self.client.post(reverse("simulador:gestao_excluir", args=[1]))
+        self.client.post(reverse("simulador:gestao_novo"), self.dados())
+        self.assertTrue(Cenario.objects.get(numero=1).ativo)
+        self.assertEqual(Cenario.objects.count(), 30)
+
+    def test_usuario_logado_que_nao_e_facilitador_recebe_403(self):
+        User.objects.create_user("jogador", password="senha-forte-123")
+        self.client.login(username="jogador", password="senha-forte-123")
+        self.assertEqual(self.client.get(reverse("simulador:gestao_lista")).status_code, 403)
+        self.assertEqual(self.client.post(reverse("simulador:gestao_alternar", args=[1])).status_code, 403)
+
+    def test_jogador_comum_nao_ve_link_para_a_gestao(self):
+        self.client.logout()
+        for nome in ("inicio", "ranking"):
+            self.assertNotContains(self.client.get(reverse(f"simulador:{nome}")), "facilitador")
+
+    def test_login_do_facilitador(self):
+        self.client.logout()
+        url = reverse("simulador:login_facilitador")
+        self.assertContains(self.client.post(url, {"usuario": "fac", "senha": "errada"}), "Usuário ou senha incorretos.")
+        User.objects.create_user("jogador", password="senha-forte-123")
+        resposta = self.client.post(url, {"usuario": "jogador", "senha": "senha-forte-123"})
+        self.assertContains(resposta, "não tem permissão de facilitador")
+        resposta = self.client.post(url, {"usuario": "fac", "senha": "senha-forte-123"})
+        self.assertRedirects(resposta, reverse("simulador:gestao_lista"))
+
+    def test_login_nao_redireciona_para_site_externo(self):
+        self.client.logout()
+        resposta = self.client.post(
+            reverse("simulador:login_facilitador"),
+            {"usuario": "fac", "senha": "senha-forte-123", "next": "https://site-malicioso.com"},
+        )
+        self.assertRedirects(resposta, reverse("simulador:gestao_lista"))
+
+    def test_sair_encerra_a_sessao(self):
+        self.client.post(reverse("simulador:logout_facilitador"))
+        self.assertEqual(self.client.get(reverse("simulador:gestao_lista")).status_code, 302)

@@ -19,7 +19,7 @@ A pesquisa mostrou que **as empresas reconhecem o valor dos dados, mas não sabe
 | 1 | Simulador de decisões com IoT (inclui identificação do jogador e ranking da equipe) | ✅ Entrega 03 |
 | 2 | Trajetória comparada: sem IoT × com IoT | ✅ Entrega 03 |
 | 3 | Trilhas de cenários por setor | ✅ Entrega 03 |
-| 4 | Gestão de cenários pelo facilitador | Entrega 04 |
+| 4 | Gestão de cenários pelo facilitador | ✅ Entrega 04 |
 | 5 | Diagnóstico personalizado da empresa | Entrega 04 |
 | 6 | Sala da equipe com código de convite | Entrega 04 |
 

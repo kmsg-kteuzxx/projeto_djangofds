@@ -20,8 +20,8 @@ class TrilhaAdmin(admin.ModelAdmin):
 
 @admin.register(Cenario)
 class CenarioAdmin(admin.ModelAdmin):
-    list_display = ("numero", "trilha", "ordem", "titulo", "setor", "perda_atual")
-    list_filter = ("trilha",)
+    list_display = ("numero", "trilha", "ordem", "titulo", "setor", "perda_atual", "ativo")
+    list_filter = ("trilha", "ativo")
     inlines = [VozInline, OpcaoInline]
 
 

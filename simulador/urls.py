@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import gestao, views
 
 app_name = "simulador"
 
@@ -14,4 +14,12 @@ urlpatterns = [
     path("relatorio/", views.relatorio, name="relatorio"),
     path("ranking/", views.ranking, name="ranking"),
     path("rodada/<int:rodada_id>/", views.rodada_detalhe, name="rodada"),
+    # Gestão de cenários pelo facilitador (História 4)
+    path("facilitador/entrar/", gestao.entrar, name="login_facilitador"),
+    path("facilitador/sair/", gestao.sair, name="logout_facilitador"),
+    path("facilitador/", gestao.lista, name="gestao_lista"),
+    path("facilitador/cenarios/novo/", gestao.novo, name="gestao_novo"),
+    path("facilitador/cenarios/<int:numero>/editar/", gestao.editar, name="gestao_editar"),
+    path("facilitador/cenarios/<int:numero>/alternar/", gestao.alternar, name="gestao_alternar"),
+    path("facilitador/cenarios/<int:numero>/excluir/", gestao.excluir, name="gestao_excluir"),
 ]

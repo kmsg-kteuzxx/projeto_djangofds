@@ -1,0 +1,30 @@
+{% extends "simulador/base.html" %}
+
+{% block titulo %}Entrar como facilitador · Simulador IoT{% endblock %}
+
+{% block conteudo %}
+<section class="estreito">
+  <div class="centro">
+    <span class="badge">Área do facilitador</span>
+    <h1>Entrar</h1>
+    <p class="lead">Acesso para quem cadastra e edita os cenários do simulador.</p>
+  </div>
+
+  <form method="post" action="{% url 'simulador:login_facilitador' %}" class="card">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    {% if erro %}<div class="erro" role="alert">{{ erro }}</div>{% endif %}
+    <div class="campo">
+      <label for="usuario">Usuário</label>
+      <input id="usuario" name="usuario" value="{{ usuario_digitado }}" autocomplete="username" required autofocus>
+    </div>
+    <div class="campo">
+      <label for="senha">Senha</label>
+      <input id="senha" name="senha" type="password" autocomplete="current-password" required>
+    </div>
+    <div class="acoes">
+      <button type="submit" class="botao">Entrar</button>
+    </div>
+  </form>
+</section>
+{% endblock %}
