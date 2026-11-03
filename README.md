@@ -124,7 +124,7 @@ O facilitador cadastra, edita, ativa/desativa e exclui cenários (com alternativ
 * Código em `simulador/gestao.py` (views em função, sem Django Forms) e templates `gestao_*.html`.
 
 🔗 **Área do facilitador:** https://projeto-djangofds.onrender.com/simulador/facilitador/
-
+user: testefacilitador senha: testefacilitador
 ---
 
 ## ▶️ Como rodar o projeto
