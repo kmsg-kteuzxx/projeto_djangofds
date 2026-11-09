@@ -131,7 +131,7 @@ user: testefacilitador senha: testefacilitador
 O jogador pode ver, antes de escolher uma alternativa, o que o sensor estaria mostrando sobre aquele problema (botão "Ver o que o sensor mostraria" na tela do cenário). É opcional e não muda a pontuação. O facilitador cadastra o texto no formulário de cenário, e o relatório final mostra em quantas decisões a pessoa consultou os dados.
 
 * **Banco:** campos `Cenario.dados_sensor` e `Decisao.viu_dados_sensor` (migração `0007_dados_sensor`, que já preenche os dados dos 30 cenários iniciais).
-* **Como funciona:** o botão abre `?dados=1` na mesma página (funciona sem JavaScript); ao confirmar, a decisão grava que os dados foram vistos. Mudar de ideia não apaga esse registro.
+* **Como funciona:** o botão abre os dados na hora, sem recarregar a página (se o JavaScript estiver desligado, cai no plano B com `?dados=1`); ao confirmar, a decisão grava que os dados foram vistos. Mudar de ideia não apaga esse registro.
 
 ### Entrega 04 – Painel de resultados do facilitador (História 6)
 

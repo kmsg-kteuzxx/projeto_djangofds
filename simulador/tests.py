@@ -683,11 +683,16 @@ class H5DadosDoSensorTest(Base):
         self.assertTrue(cenario.dados_sensor)  # preenchido pela migração 0007
         antes = self.client.get(self.url(cenario))
         self.assertContains(antes, "Ver o que o sensor mostraria")
-        self.assertNotContains(antes, cenario.dados_sensor[:30])
+        # O bloco já vem na página, mas escondido até o clique (abre sem recarregar).
+        self.assertContains(antes, 'id="dados-sensor"')
+        self.assertRegex(antes.content.decode(), r'id="dados-sensor"[^>]*\shidden>')
+        self.assertContains(antes, 'id="viu-dados" value=""')
+        # Sem JavaScript, o link ?dados=1 abre o bloco já visível (plano B).
         depois = self.client.get(self.url(cenario, dados=True))
         self.assertContains(depois, cenario.dados_sensor[:30])
+        self.assertNotRegex(depois.content.decode(), r'id="dados-sensor"[^>]*\shidden>')
         self.assertContains(depois, "Confirmar decisão")
-        self.assertContains(depois, 'name="viu_dados" value="1"')
+        self.assertContains(depois, 'id="viu-dados" value="1"')
 
     # 5.2
     def test_cenario_sem_dados_nao_mostra_o_botao(self):
@@ -696,6 +701,7 @@ class H5DadosDoSensorTest(Base):
         Cenario.objects.filter(pk=cenario.pk).update(dados_sensor="")
         resposta = self.client.get(self.url(cenario, dados=True))
         self.assertNotContains(resposta, "Ver o que o sensor mostraria")
+        self.assertNotContains(resposta, 'id="dados-sensor"')
         self.assertNotContains(resposta, 'name="viu_dados"')
 
     # 5.3
@@ -755,6 +761,8 @@ class H5FacilitadorCadastraDadosTest(Base):
 
 
 class H5TodosOsCenariosTemDadosTest(Base):
+    """História 5: todos os cenários iniciais vêm com dados do sensor (migração 0007)."""
+
     def test_todos_os_cenarios_iniciais_tem_dados_do_sensor(self):
         sem_dados = Cenario.objects.filter(dados_sensor="").values_list("numero", flat=True)
         self.assertEqual(list(sem_dados), [])

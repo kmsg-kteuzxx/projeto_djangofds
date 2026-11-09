@@ -12,6 +12,10 @@
 {% endblock %}
 
 {% block conteudo %}
+<style>
+  /* O atributo hidden precisa vencer o display:flex da classe .insight (História 5). */
+  #dados-sensor[hidden], #abrir-dados-wrap[hidden] { display: none !important; }
+</style>
 {# T4 — Rodada: situação operacional e decisão #}
 <section class="estreito">
   <span class="badge">Rodada {{ posicao }} de {{ total }}</span>
@@ -41,27 +45,27 @@
   </div>
 
   {% if tem_dados %}
-    {# História 5: dados do sensor antes da decisão #}
-    {% if mostrar_dados %}
-      <div class="insight" role="region" aria-label="O que o sensor mostraria" style="margin-top:24px">
-        <div class="icone-quadro">{% include "simulador/_icone.html" with nome="grafico" %}</div>
-        <div>
-          <strong>O que o sensor mostraria</strong>
-          <p style="margin-top:6px">{{ cenario.dados_sensor|linebreaksbr }}</p>
-        </div>
+    {# História 5: dados do sensor antes da decisão. Abre na hora, sem recarregar a página. #}
+    <p style="margin-top:24px"{% if mostrar_dados %} hidden{% endif %} id="abrir-dados-wrap">
+      {# Sem JavaScript, o link recarrega a página com ?dados=1 (plano B). #}
+      <a class="botao secundario" id="abrir-dados" href="?dados=1#dados-sensor"
+         aria-controls="dados-sensor" aria-expanded="false">
+        {% include "simulador/_icone.html" with nome="grafico" %} Ver o que o sensor mostraria
+      </a>
+    </p>
+    <div class="insight dados-sensor" id="dados-sensor" role="region" aria-label="O que o sensor mostraria"
+         tabindex="-1" style="margin-top:24px"{% if not mostrar_dados %} hidden{% endif %}>
+      <div class="icone-quadro">{% include "simulador/_icone.html" with nome="grafico" %}</div>
+      <div>
+        <strong>O que o sensor mostraria</strong>
+        <p style="margin-top:6px">{{ cenario.dados_sensor|linebreaksbr }}</p>
       </div>
-    {% else %}
-      <p style="margin-top:24px">
-        <a class="botao secundario" href="?dados=1#label-decisao">
-          {% include "simulador/_icone.html" with nome="grafico" %} Ver o que o sensor mostraria
-        </a>
-      </p>
-    {% endif %}
+    </div>
   {% endif %}
 
   <form method="post" action="{% url 'simulador:cenario' cenario.numero %}">
     {% csrf_token %}
-    {% if mostrar_dados %}<input type="hidden" name="viu_dados" value="1">{% endif %}
+    {% if tem_dados %}<input type="hidden" name="viu_dados" id="viu-dados" value="{% if mostrar_dados %}1{% endif %}">{% endif %}
     <span class="label-decisao" id="label-decisao">Qual é a sua decisão?</span>
     {% if erro %}<div class="erro" role="alert">{{ erro }}</div>{% endif %}
 
@@ -83,4 +87,25 @@
     </div>
   </form>
 </section>
+
+{% if tem_dados %}
+<script>
+  // Abre os dados do sensor sem recarregar a página e marca que o jogador viu.
+  (function () {
+    var link = document.getElementById("abrir-dados");
+    var wrap = document.getElementById("abrir-dados-wrap");
+    var bloco = document.getElementById("dados-sensor");
+    var campo = document.getElementById("viu-dados");
+    if (!link || !bloco || !campo) return;
+    link.addEventListener("click", function (evento) {
+      evento.preventDefault();
+      bloco.hidden = false;
+      wrap.hidden = true;
+      link.setAttribute("aria-expanded", "true");
+      campo.value = "1";
+      bloco.focus({ preventScroll: true });
+    });
+  })();
+</script>
+{% endif %}
 {% endblock %}
