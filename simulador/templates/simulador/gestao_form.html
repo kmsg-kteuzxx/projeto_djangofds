@@ -109,6 +109,15 @@
     </div>
 
     <div class="card">
+      <h2 style="margin-top:0">Dados do sensor (aparece antes da decisão)</h2>
+      <div class="campo">
+        <label for="dados_sensor">O que o sensor mostraria (opcional)</label>
+        <textarea id="dados_sensor" name="dados_sensor" placeholder="Ex.: A temperatura passou de 8 °C por 3 horas na madrugada, sem ninguém perceber.">{{ valores.dados_sensor }}</textarea>
+        <small>O jogador vê este texto num botão, antes de escolher. Em branco, o botão não aparece.</small>
+      </div>
+    </div>
+
+    <div class="card">
       <h2 style="margin-top:0">Alternativas ({{ min_opcoes }} a {{ max_opcoes }})</h2>
       <p class="suave">Preencha em ordem. Deixe em branco as linhas que não for usar. Marque <strong>exatamente uma</strong> como a solução IoT.</p>
       {% for op in valores.opcoes %}

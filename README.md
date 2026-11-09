@@ -60,7 +60,7 @@ Na segunda sprint, focamos em colocar a aplicação no ar usando a plataforma **
 
 ### Entrega 03 – Histórias de Usuário
 
-📄 **Todas as histórias (6) com cenários BDD:** [historias.md](historias.md)
+📄 **Todas as histórias (6) com cenários BDD (as Histórias 5 e 6 foram revisadas na Entrega 04):** [historias.md](historias.md)
 
 #### ✅ Histórias implementadas
 
@@ -110,7 +110,7 @@ Na segunda sprint, focamos em colocar a aplicação no ar usando a plataforma **
 * App Django `simulador` com os models `Cenario`, `Voz`, `Opcao`, `Rodada` e `Decisao`.
 * Os 5 cenários iniciais são gravados no banco pela migração `0002_cenarios_iniciais` (roda sozinha no `migrate` do deploy). Também podem ser editados pelo `/admin/`.
 * Views em função, sem generic views e sem Django Forms (dados lidos direto de `request.POST`).
-* 33 testes automáticos ligados aos cenários BDD: `python manage.py test simulador`.
+* Testes automáticos ligados aos cenários BDD (78 no total, incluindo as Histórias 4 e 5): `python manage.py test simulador`.
 
 ---
 
@@ -125,6 +125,17 @@ O facilitador cadastra, edita, ativa/desativa e exclui cenários (com alternativ
 
 🔗 **Área do facilitador:** https://projeto-djangofds.onrender.com/simulador/facilitador/
 user: testefacilitador senha: testefacilitador
+
+### Entrega 04 – Dados do sensor antes da decisão (História 5)
+
+O jogador pode ver, antes de escolher uma alternativa, o que o sensor estaria mostrando sobre aquele problema (botão "Ver o que o sensor mostraria" na tela do cenário). É opcional e não muda a pontuação. O facilitador cadastra o texto no formulário de cenário, e o relatório final mostra em quantas decisões a pessoa consultou os dados.
+
+* **Banco:** campos `Cenario.dados_sensor` e `Decisao.viu_dados_sensor` (migração `0007_dados_sensor`, que já preenche os dados dos 30 cenários iniciais).
+* **Como funciona:** o botão abre `?dados=1` na mesma página (funciona sem JavaScript); ao confirmar, a decisão grava que os dados foram vistos. Mudar de ideia não apaga esse registro.
+
+### Entrega 04 – Painel de resultados do facilitador (História 6)
+
+🛠️ Em desenvolvimento. Ver [historias.md](historias.md#história-6--painel-de-resultados-do-facilitador-entrega-04).
 ---
 
 ## ▶️ Como rodar o projeto

@@ -243,15 +243,24 @@ def cenario(request, numero):
             return redirect("simulador:relatorio")
         return redirect("simulador:cenario", numero=pendente.numero)
     erro = None
+    tem_dados = bool(cenario_atual.dados_sensor.strip())
+    # História 5: os dados aparecem só quando o jogador pede (?dados=1). Funciona sem JavaScript.
+    mostrar_dados = tem_dados and request.GET.get("dados") == "1"
 
     if request.method == "POST":
         letra = request.POST.get("opcao", "")
         opcao = Opcao.objects.filter(cenario=cenario_atual, letra=letra).first()
+        viu_dados = tem_dados and request.POST.get("viu_dados") == "1"
+        if viu_dados:
+            mostrar_dados = True  # em caso de erro, os dados continuam abertos
         if opcao is not None:
+            anterior = Decisao.objects.filter(rodada=rodada, cenario=cenario_atual).first()
+            if anterior is not None and anterior.viu_dados_sensor:
+                viu_dados = True  # mudou de ideia: continua contando que já consultou
             Decisao.objects.update_or_create(
                 rodada=rodada,
                 cenario=cenario_atual,
-                defaults={"opcao": opcao},
+                defaults={"opcao": opcao, "viu_dados_sensor": viu_dados},
             )
             return redirect("simulador:resultado", numero=numero)
         erro = "Escolha uma das alternativas para continuar."
@@ -270,6 +279,8 @@ def cenario(request, numero):
         "trilha": rodada.trilha,
         "pontos": pontos_de_progresso(posicao - 1, total, atual=posicao),
         "perda_atual_fmt": reais(cenario_atual.perda_atual),
+        "tem_dados": tem_dados,
+        "mostrar_dados": mostrar_dados,
         "erro": erro,
     })
 
@@ -427,6 +438,7 @@ def _montar_relatorio(request, rodada, eh_meu):
         "itens": itens,
         "total": len(itens),
         "acertos_iot": rodada.decisoes_iot(),
+        "decisoes_com_dados": rodada.decisoes_com_dados(),
         "diagnostico": diagnostico(rodada, itens, acertos),
         "pontuacao": rodada.pontuacao(),
         "sua": {

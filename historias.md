@@ -20,8 +20,8 @@ A pesquisa mostrou que **as empresas reconhecem o valor dos dados, mas não sabe
 | 2 | Trajetória comparada: sem IoT × com IoT | ✅ Entrega 03 |
 | 3 | Trilhas de cenários por setor | ✅ Entrega 03 |
 | 4 | Gestão de cenários pelo facilitador | ✅ Entrega 04 |
-| 5 | Diagnóstico personalizado da empresa | Entrega 04 |
-| 6 | Sala da equipe com código de convite | Entrega 04 |
+| 5 | Dados do sensor antes da decisão | ✅ Entrega 04 |
+| 6 | Painel de resultados do facilitador | Entrega 04 |
 
 **Regra para todas as histórias:** cada uma lê e/ou grava dados no banco de dados.
 
@@ -304,91 +304,111 @@ A pesquisa mostrou que **as empresas reconhecem o valor dos dados, mas não sabe
 
 ---
 
-## História 5 — Diagnóstico personalizado da empresa (Entrega 04)
+## História 5 — Dados do sensor antes da decisão (Entrega 04) ✅
 
-**Como** empresário que terminou a simulação,
-**eu quero** receber um diagnóstico com recomendações práticas baseadas nas minhas escolhas,
-**para que** eu saiba por onde começar a usar IoT na minha empresa.
+**Como** gestor diante de um problema da minha operação,
+**eu quero** ver o que o sensor estaria mostrando sobre esse problema antes de escolher uma alternativa,
+**para que** eu perceba, na prática, a diferença entre decidir por palpite e decidir com dados.
 
-> Do Figma (Insights para o produto): "feedback de negócio: relatório com diagnóstico personalizado com base nas escolhas tomadas". Hipótese a validar: empresas maduras já têm intenção, mas não sabem por onde começar.
+> Insight da pesquisa: as empresas reconhecem o valor dos dados, mas não sabem traduzir IoT em problemas reais. Hoje o jogador só vê "dados" depois de decidir (no resultado e no relatório). Esta história traz o dado para o momento da decisão, que é a promessa central do produto.
 
 **Critérios de aceitação**
-1. O diagnóstico identifica as áreas em que a pessoa decidiu sem dados.
-2. Para cada área, recomenda um primeiro passo concreto (ex.: "comece com sensores de temperatura nas câmaras frias").
-3. As recomendações são ordenadas pelo maior potencial de economia.
-4. O diagnóstico é gravado no banco e pode ser aberto de novo depois.
-5. Se a pessoa usou IoT em tudo, o diagnóstico sugere próximos passos de evolução (ex.: integrar os dados num painel único).
+1. Cada cenário pode ter um texto "O que o sensor mostraria", escrito em linguagem simples (ex.: "A temperatura passou de 8 °C por 3 horas na madrugada, sem ninguém perceber"), gravado no banco.
+2. Na tela do cenário, se houver esse texto, aparece o botão "Ver o que o sensor mostraria"; ao clicar, o texto é exibido sem sair da página e as alternativas continuam disponíveis.
+3. Ver os dados é opcional e **não altera a pontuação** nem a regra de 2 cliques da História 1.
+4. O facilitador cadastra e edita esse texto no formulário de cenário da História 4, sem mexer no código.
+5. Cenário sem o texto não mostra o botão.
+6. A rodada registra se o jogador abriu os dados do sensor antes de decidir, e o relatório final mostra em quantas decisões isso aconteceu.
 
-**Cenário 5.1: Diagnóstico com pontos de melhoria**
-- **Dado** que decidi sem IoT nos cenários de cadeia fria e de água
-- **Quando** abro o diagnóstico
-- **Então** vejo recomendações para essas duas áreas, a de maior economia primeiro
+**Banco de dados:** acrescenta `Cenario.dados_sensor` (texto, opcional); acrescenta `Decisao.viu_dados_sensor` (verdadeiro/falso); lê e grava em `Cenario` e `Decisao`.
 
-**Cenário 5.2: Diagnóstico salvo**
-- **Dado** que gerei um diagnóstico
-- **Quando** volto a ele dias depois
-- **Então** vejo as mesmas recomendações, lidas do banco
+**Cenário 5.1: Ver os dados do sensor**
+- **Dado** que estou no cenário "Câmara fria sem alarme" e ele tem dados do sensor cadastrados
+- **Quando** clico em "Ver o que o sensor mostraria"
+- **Então** vejo o texto com as leituras e continuo vendo as alternativas
 
-**Cenário 5.3: Empresa que já decide com dados**
-- **Dado** que escolhi IoT em todos os cenários
-- **Quando** abro o diagnóstico
-- **Então** vejo sugestões de evolução em vez de pontos de melhoria
+**Cenário 5.2: Cenário sem dados**
+- **Dado** que o cenário não tem dados do sensor cadastrados
+- **Quando** abro o cenário
+- **Então** o botão não aparece
+
+**Cenário 5.3: Pontuação não muda**
+- **Dado** que abri os dados do sensor em todos os cenários e escolhi a solução IoT em todos
+- **Quando** termino a rodada
+- **Então** minha pontuação é 100, igual a quem não abriu os dados
+
+**Cenário 5.4: Registro de quem consultou**
+- **Dado** que abri os dados do sensor em 2 de 5 cenários antes de decidir
+- **Quando** vejo o relatório final
+- **Então** vejo que consultei os dados em 2 de 5 decisões
+
+**Cenário 5.5: Facilitador cadastra os dados**
+- **Dado** que estou logado como facilitador e editando um cenário
+- **Quando** preencho "O que o sensor mostraria" e salvo
+- **Então** os novos jogadores veem o botão nesse cenário
 
 ---
 
-## História 6 — Sala da equipe com código de convite (Entrega 04)
+## História 6 — Painel de resultados do facilitador (Entrega 04)
 
-**Como** empresário (João) que quer aplicar o simulador com o meu time,
-**eu quero** criar uma sala da minha empresa com um código de convite e acompanhar, num painel, os resultados de todos que jogaram nela,
-**para que** eu veja onde a equipe mais decide sem dados e use isso para conversar com o time e ouvir os perfis analíticos (como o Alex).
+**Como** facilitador da Bzu Tech,
+**eu quero** acompanhar, dentro da minha área de gestão, como as pessoas estão jogando (quem termina, onde desiste e quanto usa IoT),
+**para que** eu saiba quais cenários funcionam, quais precisam ser ajustados e consiga mostrar resultados concretos às empresas clientes.
 
-> Da história 1: João desbloqueia a inteligência coletiva da empresa ouvindo perfis diversos e analíticos. O ranking geral mistura empresas diferentes; a sala mostra só o time de João.
+> Continuação da História 4: o facilitador já cadastra cenários, mas ainda não tem como saber se eles funcionam. O painel fecha esse ciclo (cadastrar, jogar, medir, ajustar).
 
 **Critérios de aceitação**
-1. Ao criar a sala, o sistema gera um código único de 6 caracteres e grava a sala ligada à empresa de quem criou.
-2. Na identificação, o jogador pode informar o código; com um código válido, a rodada fica ligada à sala e o nome da empresa é preenchido automaticamente.
-3. Código inexistente ou de sala encerrada mostra uma mensagem de erro e nenhuma rodada é criada.
-4. O painel da sala mostra: quantas pessoas jogaram, pontuação média, ranking interno e, para cada cenário, a porcentagem da equipe que escolheu a solução IoT.
-5. O cenário com menor uso de IoT pela equipe aparece destacado como "ponto de atenção".
-6. Só quem criou a sala pode ver o painel e encerrar a sala; após encerrada, ninguém entra mais, mas o painel continua disponível.
+1. O painel fica dentro da área do facilitador, com o link "Resultados" no menu da tela de gestão, ao lado de "Cenários". Não existe endereço solto: o acesso usa o mesmo login e a mesma permissão da História 4 (grupo Facilitadores ou superusuário). Sem login, vai para a tela de login; logado sem permissão, recebe 403.
+2. **Taxa de conclusão** por trilha = rodadas finalizadas ÷ rodadas iniciadas.
+3. **Pontuação média** por trilha, considerando apenas rodadas finalizadas.
+4. **Ponto de desistência:** para as rodadas não finalizadas, o painel mostra em qual cenário cada uma parou (o primeiro cenário da trilha sem decisão) e quantas pararam em cada cenário.
+5. **Adoção de IoT por cenário:** porcentagem de jogadores que escolheram a solução IoT; o cenário com menor adoção aparece destacado como "ponto de atenção".
+6. Filtros por trilha e por período (data inicial e final). Os números da tela respeitam os filtros.
+7. Botão "Exportar CSV" com a tabela filtrada.
+8. Sem dados no filtro escolhido, o painel mostra uma mensagem explicando e não quebra.
 
-**Banco de dados:** grava `Sala` (código, empresa, criador, data, status); grava a ligação `Rodada.sala`; lê `Rodada`, `Decisao`, `Opcao` e `Cenario` para montar o painel.
+**Banco de dados:** só leitura. Lê `Rodada`, `Decisao`, `Opcao`, `Cenario` e `Trilha` com consultas agregadas (contagem, média e agrupamento).
 
-**Cenário 6.1: Criar uma sala**
-- **Dado** que sou João, da "Frigorífico Boa Vista"
-- **Quando** clico em "Criar sala da equipe"
-- **Então** uma sala é gravada no banco e vejo o código de convite para compartilhar
+**Cenário 6.1: Acesso pelo menu do facilitador**
+- **Dado** que estou logado como facilitador na tela de gestão de cenários
+- **Quando** clico em "Resultados"
+- **Então** o painel abre sem eu precisar digitar outro endereço
 
-**Cenário 6.2: Entrar na sala com o código**
-- **Dado** que João me passou o código da sala
-- **Quando** informo meu nome e o código e clico em "Iniciar"
-- **Então** a rodada é gravada ligada à sala, com a empresa "Frigorífico Boa Vista" já preenchida
+**Cenário 6.2: Acesso sem permissão**
+- **Dado** que não estou logado como facilitador
+- **Quando** tento abrir o painel pelo endereço
+- **Então** sou levado à tela de login
 
-**Cenário 6.3: Código inválido**
-- **Dado** que estou me identificando
-- **Quando** informo um código que não existe
-- **Então** vejo "Código de sala não encontrado." e nenhuma rodada é criada
+**Cenário 6.3: Taxa de conclusão**
+- **Dado** que 10 rodadas foram iniciadas e 4 finalizadas na trilha Saúde
+- **Quando** abro o painel
+- **Então** vejo 40% de conclusão para essa trilha
 
-**Cenário 6.4: Painel da equipe**
-- **Dado** que 3 pessoas terminaram rodadas na sala de João
-- **Quando** João abre o painel
-- **Então** vê a pontuação média, o ranking das 3 pessoas e a porcentagem de uso de IoT em cada cenário
+**Cenário 6.4: Ponto de desistência**
+- **Dado** que 3 rodadas pararam antes de responder o cenário 3
+- **Quando** abro o painel
+- **Então** o cenário 3 aparece com 3 desistências
 
 **Cenário 6.5: Ponto de atenção**
-- **Dado** que ninguém da equipe escolheu IoT no cenário de cadeia fria
-- **Quando** João abre o painel
+- **Dado** que quase ninguém escolheu IoT no cenário de cadeia fria
+- **Quando** abro o painel
 - **Então** esse cenário aparece destacado como "ponto de atenção"
 
-**Cenário 6.6: Sala encerrada**
-- **Dado** que João encerrou a sala
-- **Quando** alguém tenta entrar com o código
-- **Então** vê "Esta sala foi encerrada." e nenhuma rodada é criada
+**Cenário 6.6: Filtrar por trilha e período**
+- **Dado** que existem rodadas de trilhas e datas diferentes
+- **Quando** filtro por "Saúde" e pelo mês atual
+- **Então** os números mostram só as rodadas de saúde daquele mês
 
-**Cenário 6.7: Painel de outra pessoa**
-- **Dado** que não fui eu quem criou a sala
-- **Quando** tento abrir o painel pelo endereço
-- **Então** recebo "página não encontrada"
+**Cenário 6.7: Exportar CSV**
+- **Dado** que apliquei um filtro
+- **Quando** clico em "Exportar CSV"
+- **Então** baixo um arquivo com as linhas da tabela filtrada
+
+**Cenário 6.8: Sem dados**
+- **Dado** que nenhuma rodada foi iniciada no período escolhido
+- **Quando** abro o painel
+- **Então** vejo uma mensagem informando que não há rodadas no período, sem erro
 
 ---
 
-> Os cenários das histórias 1, 2 e 3 são verificados pelos testes automáticos em `simulador/tests.py` (`python manage.py test simulador`).
+> Os cenários das histórias 1 a 5 são verificados pelos testes automáticos em `simulador/tests.py` (`python manage.py test simulador`).

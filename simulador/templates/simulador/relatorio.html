@@ -47,6 +47,7 @@
   <div class="destaques">
     <div class="destaque"><small>Pontuação</small><span class="valor">{{ pontuacao }}/100</span></div>
     <div class="destaque"><small>Decisões baseadas em dados</small><span class="valor">{{ acertos_iot }} de {{ total }}</span></div>
+    <div class="destaque"><small>Consultou os dados do sensor</small><span class="valor">{{ decisoes_com_dados }} de {{ total }}</span></div>
     <div class="destaque"><small>Seu resultado em 1 ano</small><span class="valor {% if resultado_positivo %}positivo{% else %}negativo{% endif %}">{{ resultado_anual_fmt }}</span></div>
     <div class="destaque"><small>A mais com IoT em 1 ano</small><span class="valor positivo">{{ diferenca_anual_fmt }}</span></div>
   </div>

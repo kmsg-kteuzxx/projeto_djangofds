@@ -127,6 +127,7 @@ def _valores_do_post(post, total_vozes):
         "conceito_resumo": post.get("conceito_resumo", "").strip(),
         "conceito_passos": post.get("conceito_passos", "").strip(),
         "conceito_economia": post.get("conceito_economia", "").strip(),
+        "dados_sensor": post.get("dados_sensor", "").strip(),
         "ativo": post.get("ativo") == "on",
         "iot": post.get("iot", ""),
         "opcoes": [
@@ -181,6 +182,7 @@ def _valores_do_cenario(cenario):
         "conceito_resumo": cenario.conceito_resumo,
         "conceito_passos": cenario.conceito_passos,
         "conceito_economia": cenario.conceito_economia,
+        "dados_sensor": cenario.dados_sensor,
         "ativo": cenario.ativo,
         "iot": iot,
         "opcoes": opcoes,
@@ -192,6 +194,7 @@ def _valores_novos():
     return {
         "titulo": "", "setor": "", "trilha": "", "ordem": "", "problema": "", "perda_atual": "",
         "conceito_titulo": "", "conceito_resumo": "", "conceito_passos": "", "conceito_economia": "",
+        "dados_sensor": "",
         "ativo": True,
         "iot": "",
         "opcoes": [
@@ -334,6 +337,7 @@ def _gravar(valores, dados, cenario=None):
     cenario.conceito_resumo = valores["conceito_resumo"]
     cenario.conceito_passos = valores["conceito_passos"]
     cenario.conceito_economia = valores["conceito_economia"]
+    cenario.dados_sensor = valores["dados_sensor"]
     cenario.ativo = valores["ativo"]
     cenario.save()
 

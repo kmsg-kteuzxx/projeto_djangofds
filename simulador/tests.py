@@ -665,3 +665,96 @@ class H4GestaoDeCenariosTest(Base):
     def test_sair_encerra_a_sessao(self):
         self.client.post(reverse("simulador:logout_facilitador"))
         self.assertEqual(self.client.get(reverse("simulador:gestao_lista")).status_code, 302)
+
+
+class H5DadosDoSensorTest(Base):
+    """História 5: dados do sensor antes da decisão."""
+
+    def primeiro(self):
+        return self.cenarios_da_trilha().first()
+
+    def url(self, cenario, dados=False):
+        return reverse("simulador:cenario", args=[cenario.numero]) + ("?dados=1" if dados else "")
+
+    # 5.1
+    def test_ver_os_dados_do_sensor_mostra_o_texto_e_as_alternativas(self):
+        self.comecar()
+        cenario = self.primeiro()
+        self.assertTrue(cenario.dados_sensor)  # preenchido pela migração 0007
+        antes = self.client.get(self.url(cenario))
+        self.assertContains(antes, "Ver o que o sensor mostraria")
+        self.assertNotContains(antes, cenario.dados_sensor[:30])
+        depois = self.client.get(self.url(cenario, dados=True))
+        self.assertContains(depois, cenario.dados_sensor[:30])
+        self.assertContains(depois, "Confirmar decisão")
+        self.assertContains(depois, 'name="viu_dados" value="1"')
+
+    # 5.2
+    def test_cenario_sem_dados_nao_mostra_o_botao(self):
+        self.comecar()
+        cenario = self.primeiro()
+        Cenario.objects.filter(pk=cenario.pk).update(dados_sensor="")
+        resposta = self.client.get(self.url(cenario, dados=True))
+        self.assertNotContains(resposta, "Ver o que o sensor mostraria")
+        self.assertNotContains(resposta, 'name="viu_dados"')
+
+    # 5.3
+    def test_abrir_os_dados_nao_muda_a_pontuacao(self):
+        self.comecar()
+        for cenario in self.cenarios_da_trilha():
+            self.client.post(self.url(cenario), {"opcao": cenario.opcao_iot().letra, "viu_dados": "1"})
+        self.client.get(reverse("simulador:relatorio"))
+        self.assertEqual(Rodada.objects.get().pontuacao(), 100)
+
+    # 5.4
+    def test_relatorio_mostra_em_quantas_decisoes_consultou_os_dados(self):
+        self.comecar()
+        cenarios = list(self.cenarios_da_trilha())
+        for i, cenario in enumerate(cenarios):
+            dados = {"opcao": cenario.opcoes.first().letra}
+            if i == 0:
+                dados["viu_dados"] = "1"
+            self.client.post(self.url(cenario), dados)
+        resposta = self.client.get(reverse("simulador:relatorio"))
+        self.assertEqual(Rodada.objects.get().decisoes_com_dados(), 1)
+        self.assertContains(resposta, "Consultou os dados do sensor")
+        self.assertContains(resposta, f"1 de {len(cenarios)}")
+
+    def test_mudar_de_ideia_nao_apaga_que_consultou_os_dados(self):
+        self.comecar()
+        cenario = self.primeiro()
+        self.client.post(self.url(cenario), {"opcao": "a", "viu_dados": "1"})
+        self.client.post(self.url(cenario), {"opcao": "b"})
+        decisao = Decisao.objects.get()
+        self.assertEqual(decisao.opcao.letra, "b")
+        self.assertTrue(decisao.viu_dados_sensor)
+
+    def test_cenario_sem_dados_ignora_viu_dados_enviado(self):
+        self.comecar()
+        cenario = self.primeiro()
+        Cenario.objects.filter(pk=cenario.pk).update(dados_sensor="")
+        self.client.post(self.url(cenario), {"opcao": "a", "viu_dados": "1"})
+        self.assertFalse(Decisao.objects.get().viu_dados_sensor)
+
+
+class H5FacilitadorCadastraDadosTest(Base):
+    """História 5, cenário 5.5: o facilitador cadastra os dados do sensor."""
+
+    # Reaproveita o login e o formulário válido dos testes da História 4.
+    setUp = H4GestaoDeCenariosTest.setUp
+    dados = H4GestaoDeCenariosTest.dados
+    salvar = H4GestaoDeCenariosTest.salvar
+    cenario_novo = H4GestaoDeCenariosTest.cenario_novo
+
+    def test_facilitador_cadastra_e_edita_os_dados_do_sensor(self):
+        self.salvar(dados_sensor="Temperatura passou de 8 °C às 3h.")
+        cenario = self.cenario_novo()
+        self.assertEqual(cenario.dados_sensor, "Temperatura passou de 8 °C às 3h.")
+        tela = self.client.get(reverse("simulador:gestao_editar", args=[cenario.numero]))
+        self.assertContains(tela, "Temperatura passou de 8 °C às 3h.")
+
+
+class H5TodosOsCenariosTemDadosTest(Base):
+    def test_todos_os_cenarios_iniciais_tem_dados_do_sensor(self):
+        sem_dados = Cenario.objects.filter(dados_sensor="").values_list("numero", flat=True)
+        self.assertEqual(list(sem_dados), [])

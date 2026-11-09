@@ -40,8 +40,28 @@
     {% endfor %}
   </div>
 
+  {% if tem_dados %}
+    {# História 5: dados do sensor antes da decisão #}
+    {% if mostrar_dados %}
+      <div class="insight" role="region" aria-label="O que o sensor mostraria" style="margin-top:24px">
+        <div class="icone-quadro">{% include "simulador/_icone.html" with nome="grafico" %}</div>
+        <div>
+          <strong>O que o sensor mostraria</strong>
+          <p style="margin-top:6px">{{ cenario.dados_sensor|linebreaksbr }}</p>
+        </div>
+      </div>
+    {% else %}
+      <p style="margin-top:24px">
+        <a class="botao secundario" href="?dados=1#label-decisao">
+          {% include "simulador/_icone.html" with nome="grafico" %} Ver o que o sensor mostraria
+        </a>
+      </p>
+    {% endif %}
+  {% endif %}
+
   <form method="post" action="{% url 'simulador:cenario' cenario.numero %}">
     {% csrf_token %}
+    {% if mostrar_dados %}<input type="hidden" name="viu_dados" value="1">{% endif %}
     <span class="label-decisao" id="label-decisao">Qual é a sua decisão?</span>
     {% if erro %}<div class="erro" role="alert">{{ erro }}</div>{% endif %}
 

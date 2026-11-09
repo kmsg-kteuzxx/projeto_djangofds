@@ -41,6 +41,14 @@ class Cenario(models.Model):
         help_text="Só cenários ativos aparecem para os jogadores. Desativar não apaga as decisões já tomadas.",
     )
 
+    # Dados do sensor mostrados antes da decisão (História 5). Opcional.
+    dados_sensor = models.TextField(
+        blank=True,
+        default="",
+        help_text="O que o sensor mostraria sobre este problema, em linguagem simples. "
+        "Se ficar em branco, o botão não aparece para o jogador.",
+    )
+
     # Conceito de IoT explicado no relatório de aprendizado
     conceito_titulo = models.CharField(max_length=120)
     conceito_resumo = models.TextField()
@@ -173,6 +181,10 @@ class Rodada(models.Model):
     def resultado_total(self):
         return sum(d.opcao.resultado for d in self.decisoes.select_related("opcao__cenario"))
 
+    def decisoes_com_dados(self):
+        """Em quantas decisões o jogador abriu os dados do sensor antes de decidir (História 5)."""
+        return self.decisoes.filter(viu_dados_sensor=True).count()
+
     def decisoes_iot(self):
         return self.decisoes.filter(opcao__usa_iot=True).count()
 
@@ -198,6 +210,9 @@ class Decisao(models.Model):
     cenario = models.ForeignKey(Cenario, on_delete=models.CASCADE)
     opcao = models.ForeignKey(Opcao, on_delete=models.CASCADE)
     decidida_em = models.DateTimeField(auto_now=True)
+    viu_dados_sensor = models.BooleanField(
+        default=False, help_text="O jogador abriu os dados do sensor antes de decidir (História 5)"
+    )
 
     class Meta:
         ordering = ["cenario__ordem", "cenario__numero"]
