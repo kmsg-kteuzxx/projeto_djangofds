@@ -60,7 +60,7 @@ Na segunda sprint, focamos em colocar a aplicação no ar usando a plataforma **
 
 ### Entrega 03 – Histórias de Usuário
 
-📄 **Todas as histórias (6) com cenários BDD (as Histórias 5 e 6 foram revisadas na Entrega 04):** [historias.md](historias.md)
+📄 **Todas as histórias (6) com cenários BDD (as Histórias 5 e 6 foram revisadas e implementadas na Entrega 04):** [historias.md](historias.md)
 
 #### ✅ Histórias implementadas
 
@@ -104,41 +104,95 @@ Na segunda sprint, focamos em colocar a aplicação no ar usando a plataforma **
 
 **Telas (seguindo o planejamento do time de design):** T1 abertura → T2 como funciona → T3 escolha de trilha (setor) → T4 rodada X de 5 → T5 consequência (sem IoT × com IoT) → T6 progresso com prejuízo acumulado → (repete T4 a T6 a cada rodada) → T7 simulação concluída.
 
-**Identidade visual (moodboard do time de design):** paleta *Dark Tech* (fundo `#180E29`, cards `#23173B`, CTA `#7C3AED`, com IoT `#10B981`, sem IoT `#EF4444`, texto `#F5F3FF`). As fontes escolhidas no Figma são pagas, por isso usamos alternativas gratuitas (licença OFL) incluídas no projeto: **Michroma** no lugar de Bank Gothic (títulos de abertura), **Inter** no lugar de Aktiv Grotesk (textos) e **JetBrains Mono** no lugar de Input Mono (valores e métricas).
+**Identidade visual IoTSim (manual da marca e protótipo de média fidelidade do time de design):** logo IoTSim, cores da marca `#180E29` (fundo), `#FFFFFF` (texto), `#6D28D9` e `#9333EA` (roxos), vermelho e verde só nos cards "sem IoT" e "com IoT". Botões e cards lisos, cantos arredondados, sem sombras nem efeitos, seguindo a regra do manual da marca. A fonte escolhida no Figma (Aktiv Grotesk) é paga, por isso usamos a **Inter**, alternativa gratuita (licença OFL) incluída no projeto, em todo o site.
 
 **Como funciona por dentro:**
 * App Django `simulador` com os models `Cenario`, `Voz`, `Opcao`, `Rodada` e `Decisao`.
 * Os 5 cenários iniciais são gravados no banco pela migração `0002_cenarios_iniciais` (roda sozinha no `migrate` do deploy). Também podem ser editados pelo `/admin/`.
 * Views em função, sem generic views e sem Django Forms (dados lidos direto de `request.POST`).
-* Testes automáticos ligados aos cenários BDD (78 no total, incluindo as Histórias 4 e 5): `python manage.py test simulador`.
+* Testes automáticos ligados aos cenários BDD: `python manage.py test simulador`.
 
 ---
 
-### Entrega 04 – Gestão de cenários pelo facilitador (História 4)
+### Entrega 04 – Gestão, dados do sensor e painel de resultados
 
-O facilitador cadastra, edita, ativa/desativa e exclui cenários (com alternativas e opiniões da equipe) pelo próprio sistema, em `/simulador/facilitador/`.
+#### ✅ Histórias implementadas
 
-* **Acesso:** só superusuário ou usuário do grupo **Facilitadores** (criado pela migração `0006`; vincule o usuário em `/admin/`). Sem login, vai para a tela de login; logado sem permissão, recebe 403.
-* **Regras:** 2 a 4 alternativas, exatamente uma marcada como solução IoT, custo, prejuízo que continua e horas perdidas/mês por alternativa.
-* **Ativo/desativado:** só cenários ativos aparecem para jogadores; desativar não apaga decisões nem altera partidas antigas. Cenário já jogado não pode ser excluído, só desativado.
-* Código em `simulador/gestao.py` (views em função, sem Django Forms) e templates `gestao_*.html`.
+> **📝 POST-IT 4 — Gestão de cenários pelo facilitador**
+>
+> **Como** facilitador da Bzu Tech,
+> **eu quero** cadastrar, editar, ativar/desativar e excluir cenários pelo próprio sistema,
+> **para que** eu transforme a dor relatada pelo cliente em um cenário jogável sem mexer no código.
+>
+> - Acesso só para facilitadores (login próprio); sem permissão, acesso negado
+> - Cenário com 2 a 4 alternativas, exatamente uma marcada como solução IoT
+> - Opiniões da equipe, custo, prejuízo que continua e horas perdidas por alternativa
+> - Só cenários ativos aparecem para os jogadores; desativar não altera partidas antigas
+> - Cenário já jogado não pode ser excluído, só desativado
+
+> **📝 POST-IT 5 — Dados do sensor antes da decisão**
+>
+> **Como** gestor diante de um problema da minha operação,
+> **eu quero** ver o que o sensor estaria mostrando antes de escolher uma alternativa,
+> **para que** eu perceba a diferença entre decidir por palpite e decidir com dados.
+>
+> - Botão "Ver o que o sensor mostraria" na tela do cenário, que abre os dados sem recarregar a página
+> - Opcional: não muda a pontuação nem a decisão em 2 cliques
+> - O facilitador cadastra o texto no formulário de cenário (em branco, o botão não aparece)
+> - O relatório final mostra em quantas decisões a pessoa consultou os dados
+
+> **📝 POST-IT 6 — Painel de resultados do facilitador**
+>
+> **Como** facilitador da Bzu Tech,
+> **eu quero** acompanhar, dentro da minha área, como as pessoas estão jogando,
+> **para que** eu saiba quais cenários funcionam, quais precisam de ajuste e mostre resultados aos clientes.
+>
+> - Link "Resultados" no menu do facilitador, com o mesmo login e permissão da História 4
+> - Taxa de conclusão e pontuação média por trilha
+> - Ponto de desistência: em qual cenário as partidas não finalizadas pararam
+> - Adoção de IoT por cenário, com o de menor adoção destacado como "ponto de atenção"
+> - Filtros por trilha e período, exportação em CSV e mensagem quando não há dados
 
 🔗 **Área do facilitador:** https://projeto-djangofds.onrender.com/simulador/facilitador/
+🔗 **Painel de resultados:** https://projeto-djangofds.onrender.com/simulador/facilitador/resultados/
 user: testefacilitador senha: testefacilitador
 
-### Entrega 04 – Dados do sensor antes da decisão (História 5)
+**Como funciona por dentro:**
+* **História 4:** `simulador/gestao.py` (views em função, sem Django Forms) e templates `gestao_*.html`. Facilitador = superusuário ou usuário do grupo **Facilitadores** (criado pela migração `0006`; vincule o usuário em `/admin/`). Sem login, vai para a tela de login; logado sem permissão, recebe 403.
+* **História 5:** campos `Cenario.dados_sensor` e `Decisao.viu_dados_sensor` (migração `0007_dados_sensor`, que já preenche os dados dos 30 cenários iniciais). O botão abre os dados na hora com JavaScript (sem JavaScript, cai no plano B com `?dados=1`); ao confirmar, a decisão grava que os dados foram vistos.
+* **História 6:** `simulador/painel.py` (view `resultados`, protegida pelo mesmo `facilitador_required`) e template `gestao_resultados.html`. Só lê o banco: contagens e médias com `Count` e filtros por trilha e data de início da partida; o CSV usa a mesma consulta, com `?formato=csv`.
+* Testes automáticos ligados aos cenários BDD (90 de unidade): `python manage.py test simulador --exclude-tag=e2e`.
 
-O jogador pode ver, antes de escolher uma alternativa, o que o sensor estaria mostrando sobre aquele problema (botão "Ver o que o sensor mostraria" na tela do cenário). É opcional e não muda a pontuação. O facilitador cadastra o texto no formulário de cenário, e o relatório final mostra em quantas decisões a pessoa consultou os dados.
+#### 🧪 Testes de sistema (E2E) com Selenium
 
-* **Banco:** campos `Cenario.dados_sensor` e `Decisao.viu_dados_sensor` (migração `0007_dados_sensor`, que já preenche os dados dos 30 cenários iniciais).
-* **Como funciona:** o botão abre os dados na hora, sem recarregar a página (se o JavaScript estiver desligado, cai no plano B com `?dados=1`); ao confirmar, a decisão grava que os dados foram vistos. Mudar de ideia não apaga esse registro.
+Em `simulador/tests_e2e.py`, os testes abrem um Chrome de verdade (sem janela) e usam o site como uma pessoa usaria:
+* **História 1:** joga a trilha inteira pelo navegador e confere o relatório.
+* **História 4:** a área do facilitador pede login; o facilitador desativa um cenário pela tela.
+* **História 5:** os dados do sensor abrem na hora, sem recarregar a página, e o relatório conta em quantas decisões a pessoa viu os dados.
+* **História 6:** o painel abre pelo menu "Resultados", o filtro por trilha funciona e o link do CSV leva os filtros.
 
-### Entrega 04 – Painel de resultados do facilitador (História 6)
+Como rodar: `pip install -r requirements-dev.txt` e depois `python manage.py test simulador --tag=e2e`.
 
-🛠️ Em desenvolvimento. Ver [historias.md](historias.md#história-6--painel-de-resultados-do-facilitador-entrega-04).
+🎥 **Screencast da execução dos testes E2E:** _(link do YouTube)_
+
+#### ⚙️ CI/CD (integração e deploy contínuos)
+
+O pipeline fica em [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml) e roda no GitHub Actions a cada push e pull request:
+1. **Build:** instala as dependências, confere as migrações e roda `collectstatic`.
+2. **Testes:** roda os testes de unidade e depois os testes E2E com Selenium (Chrome e ChromeDriver instalados no próprio pipeline).
+3. **Deploy:** só se todos os testes passarem e o push for na `main`, o pipeline pede o deploy ao Render pelo Deploy Hook. Teste falhando = nada vai para o ar.
+
+🎥 **Screencast do CI/CD (build, testes e deploy):** _(link do YouTube)_
+
+🎥 **Screencast do deploy das novas histórias:** _(link do YouTube)_
+
+📋 **Quadro da Sprint 04 (JIRA):** _(print do quadro)_
+
 ---
 
 ## ▶️ Como rodar o projeto
+
+🤝 Quer contribuir? Veja o guia completo em [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ```bash
 python -m venv venv
@@ -148,7 +202,7 @@ python manage.py migrate        # cria as tabelas e grava os cenários do simula
 python manage.py runserver
 ```
 
-Acesse http://127.0.0.1:8000. Para rodar os testes: `python manage.py test simulador`.
+Acesse http://127.0.0.1:8000. Para rodar os testes: `python manage.py test simulador` (os E2E precisam de `pip install -r requirements-dev.txt`).
 
 ---
 
@@ -174,3 +228,9 @@ Acesse http://127.0.0.1:8000. Para rodar os testes: `python manage.py test simul
 ## 🎥 Explicação do código do projeto Django - Bzu Tech
 
 [https://youtu.be/AJv6ibi3YPE]
+
+---
+
+## 🤖 Uso de Inteligência Artificial
+
+Usamos o Claude (Anthropic) como ferramenta de apoio durante o projeto: para revisar e sugerir histórias de usuário, ajudar a implementar partes do código (como as Histórias 5 e 6) e escrever testes e documentação. Todo o código foi revisado, testado e aplicado no repositório pela equipe, e as decisões sobre o produto foram nossas.

@@ -3,30 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block titulo %}Simulador IoT · Bzu Tech{% endblock %}</title>
+  <title>{% block titulo %}IoTSim · Simulador de decisões · Bzu Tech{% endblock %}</title>
+  <link rel="icon" type="image/png" href="/static/simulador/img/iotsim-simbolo.png">
   <style>
     /* ===================================================================
-       Identidade visual definida pelo time de design (Moodboard de marca)
-       Paleta: Opção 1 (Dark Tech)
-       Fontes: alternativas gratuitas (licença OFL) às escolhidas no Figma
-         - Bank Gothic (títulos de abertura)   -> Michroma
-         - Aktiv Grotesk (títulos internos/texto) -> Inter
-         - Input Mono (valores e métricas)     -> JetBrains Mono
+       Identidade visual IoTSim (manual da marca + protótipo de média
+       fidelidade do time de design)
+       Cores da marca: #180E29 (fundo), #FFFFFF (texto), #6D28D9 e #9333EA
+       Regras: botões e cards lisos, cantos suaves, sem sombras nem efeitos.
+       Fonte: Inter, alternativa gratuita (licença OFL) à Aktiv Grotesk do
+       Figma, em todo o site (títulos, textos e valores).
        =================================================================== */
-    @font-face {
-      font-family: "Michroma";
-      src: url("/static/simulador/fonts/michroma.woff") format("woff");
-      font-weight: 400; font-display: swap;
-    }
     @font-face {
       font-family: "Inter";
       src: url("/static/simulador/fonts/inter.woff") format("woff");
       font-weight: 100 900; font-display: swap;
-    }
-    @font-face {
-      font-family: "JetBrains Mono";
-      src: url("/static/simulador/fonts/jetbrains-mono.woff") format("woff");
-      font-weight: 100 800; font-display: swap;
     }
 
     :root {
@@ -35,24 +26,24 @@
       --card: #23173B;             /* Roxo Sombra Fechado */
       --card-hover: #2C1E4A;       /* Roxo interativo (hover) */
       --borda: #3E2B63;            /* Roxo aço contorno (borda inativa) */
-      /* CTA e ícones da Bzu */
-      --violeta: #7C3AED;          /* Violeta Elétrico (card selecionado, CTA) */
-      --purpura: #9333EA;          /* Púrpura Vibrante */
-      --violeta-escuro: #6D28D9;   /* Roxo Violeta Profundo */
+      /* Roxos da marca IoTSim */
+      --violeta: #9333EA;          /* Botões, cards de destaque, "SIM" do logo */
+      --purpura: #9333EA;
+      --violeta-escuro: #6D28D9;   /* Hover e alternativa selecionada */
       /* Significado */
       --verde: #10B981;            /* Dado positivo / Com a Bzu */
       --vermelho: #EF4444;         /* Sem IoT */
       /* Texto */
-      --texto: #F5F3FF;            /* Branco lilás suave */
+      --texto: #FFFFFF;
       --suave: #B4AFC7;            /* Cinza lavanda */
 
-      --fonte-titulo: "Michroma", "Eurostile", "Arial Black", sans-serif;
       --fonte-texto: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      --fonte-dados: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+      --fonte-titulo: var(--fonte-texto);
+      --fonte-dados: var(--fonte-texto);   /* valores usam números alinhados (tabular-nums) */
 
       --raio: 18px;
       --raio-pequeno: 12px;
-      --brilho: 0 0 0 1px var(--violeta), 0 0 28px rgba(124, 58, 237, .45);
+      --brilho: 0 0 0 2px #FFFFFF;          /* destaque de seleção, sem brilho */
     }
 
     * { box-sizing: border-box; }
@@ -64,11 +55,7 @@
       font-size: 17px;               /* público mais velho: texto confortável */
       line-height: 1.6;
       color: var(--texto);
-      background:
-        radial-gradient(900px 500px at 85% -10%, rgba(124, 58, 237, .22), transparent 60%),
-        radial-gradient(700px 500px at -10% 110%, rgba(147, 51, 234, .14), transparent 60%),
-        var(--fundo);
-      background-repeat: no-repeat;
+      background: var(--fundo);
     }
     html { background: var(--fundo); }
     a { color: #C4B5FD; }
@@ -356,6 +343,119 @@
     .tempo { font-family: var(--fonte-dados); font-size: .9rem; color: var(--suave); display: inline-flex; align-items: center; gap: 8px; margin-top: 22px; }
     .tempo .icone { width: 18px; height: 18px; }
 
+    /* ===================================================================
+       Redesign IoTSim (protótipo de média fidelidade): tudo liso, sem
+       gradientes, brilhos ou sombras; botões em pílula; textos em Inter.
+       =================================================================== */
+    a { color: #D8B4FE; }
+    .marca img { height: 28px; }
+    .marca-bzu { display: flex; align-items: center; }
+    .marca-bzu img { height: 30px; width: auto; display: block; opacity: .9; }
+    header .direita { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; justify-content: flex-end; }
+    .ponto.atual { box-shadow: none; border-color: #fff; }
+    .ponto.feito { background: var(--violeta); border-color: var(--violeta); }
+
+    h1.titulo-abertura { font-family: var(--fonte-texto); font-weight: 700; text-transform: none; letter-spacing: -.3px; text-shadow: none; font-size: clamp(1.6rem, 4vw, 2.2rem); }
+    .logo-abertura { display: block; width: min(440px, 86%); height: auto; margin: 24px auto 36px; }
+
+    .badge {
+      font-family: var(--fonte-texto); font-size: .85rem; font-weight: 600; letter-spacing: 0; text-transform: none;
+      color: var(--texto); background: var(--card); border: 1px solid var(--borda);
+    }
+    .badge.verde { color: #D1FAE5; background: rgba(16, 185, 129, .18); border-color: rgba(16, 185, 129, .5); }
+    .icone-circulo { background: var(--card); box-shadow: none; border-color: var(--borda); }
+    .icone-quadro { background: rgba(147, 51, 234, .22); color: #E9D5FF; }
+
+    /* Botões: roxo liso, em pílula, sem sombra e sem seta */
+    .botao {
+      background: var(--violeta); border-radius: 999px; box-shadow: none;
+      font-weight: 600; min-height: 52px; padding: 0 32px;
+    }
+    .botao:hover { background: var(--violeta-escuro); box-shadow: none; transform: none; }
+    .botao .icone { display: none; }
+    .botao.secundario { border: 1px solid rgba(255, 255, 255, .35); }
+    .botao.secundario:hover { background: var(--card-hover); }
+
+    /* Rótulos e valores na fonte do texto (sem fonte mono) */
+    .rotulo { font-family: var(--fonte-texto); font-size: .85rem; font-weight: 700; letter-spacing: .3px; text-transform: none; }
+    .valor { font-family: var(--fonte-texto); font-weight: 700; }
+    .contador, .rotulo-cabecalho { font-family: var(--fonte-texto); letter-spacing: 0; text-transform: none; font-size: .95rem; }
+    .etiqueta { font-family: var(--fonte-texto); font-size: .78rem; font-weight: 600; letter-spacing: 0; text-transform: none; }
+    table.ranking th { font-family: var(--fonte-texto); font-size: .85rem; font-weight: 600; letter-spacing: 0; text-transform: none; }
+    table.ranking td.num { font-family: var(--fonte-texto); font-variant-numeric: tabular-nums; }
+    .tempo { font-family: var(--fonte-texto); font-size: .95rem; margin-top: 28px; }
+    .tempo .icone { display: none; }
+    details.aprendizado summary::after { font-family: var(--fonte-texto); }
+    .campo input:focus, .campo textarea:focus, .campo select:focus { box-shadow: none; border-color: #fff; }
+
+    /* Cards de destaque e insight: lisos */
+    .insight { background: var(--card); border-color: var(--violeta); }
+    .barra span { background: var(--violeta); box-shadow: none; }
+
+    /* T2: etapas em cards roxos (protótipo) */
+    .card.etapa { background: var(--violeta); border-color: var(--violeta); }
+    .card.etapa h3 { font-size: 1.05rem; margin-bottom: 6px; }
+    .card.etapa p { color: rgba(255, 255, 255, .92); }
+    .card.etapa .icone-quadro, .card.etapa .numero-etapa { display: none; }
+    details.explica { margin: 0; }
+    details.explica summary {
+      list-style: none; cursor: pointer; text-align: center; font-weight: 700;
+      background: var(--violeta); border-radius: var(--raio-pequeno); padding: 16px 20px;
+    }
+    details.explica summary::-webkit-details-marker { display: none; }
+    details.explica summary:hover, details.explica[open] summary { background: var(--violeta-escuro); }
+    details.explica p { margin: 12px 4px 0; color: var(--suave); }
+
+    /* T3: segmentos como botões roxos grandes */
+    .grade.trilhas { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    .trilha-card {
+      background: var(--violeta); border-color: var(--violeta); min-height: 120px;
+      align-items: center; justify-content: center; text-align: center; padding: 20px;
+    }
+    .trilha-card:hover, .trilha-card:focus-within { background: var(--violeta-escuro); border-color: #fff; box-shadow: none; transform: none; }
+    .trilha-card.atual { border-color: #fff; }
+    button.trilha-card { width: 100%; height: 100%; cursor: pointer; color: #fff; font: inherit; gap: 8px; }
+    .trilha-nome { font-size: 1.15rem; font-weight: 700; line-height: 1.3; }
+    .trilha-exemplos { font-size: .88rem; line-height: 1.45; color: rgba(255, 255, 255, .85); max-width: 30ch; }
+    .trilha-card .etiqueta { align-self: center; background: rgba(255, 255, 255, .2); color: #fff; }
+    .grade.trilhas form { margin: 0; }
+
+    /* T4: pergunta e alternativas em barras roxas */
+    .label-decisao {
+      font-family: var(--fonte-texto); font-size: 1.3rem; font-weight: 700; letter-spacing: 0;
+      text-transform: none; color: var(--texto); margin: 36px 0 14px;
+    }
+    .opcao { background: var(--violeta); border-color: var(--violeta); border-width: 2px; }
+    .opcao:hover { background: var(--violeta-escuro); }
+    .opcao:has(input:checked) { background: var(--violeta-escuro); border-color: #fff; box-shadow: none; }
+    .opcao .letra { font-family: var(--fonte-texto); font-weight: 700; border-color: rgba(255, 255, 255, .6); color: #fff; }
+    .opcao:has(input:checked) .letra { background: #fff; border-color: #fff; color: var(--violeta-escuro); }
+    .opcao .descricao-opcao { font-family: var(--fonte-texto); color: rgba(255, 255, 255, .88); font-size: .92rem; }
+
+    /* T5 e T7: cards "sem IoT" (vermelho) e "com IoT" (verde) cheios */
+    .card.sem, .card.com { color: #180E29; border: none; box-shadow: none; }
+    .card.sem { background: var(--vermelho); }
+    .grade.duas > .card.sem { order: -1; }   /* protótipo: vermelho sempre à esquerda */
+    .card.com { background: var(--verde); }
+    .card.sem .rotulo, .card.com .rotulo, .card.sem .suave, .card.com .suave,
+    .card.sem .metrica small, .card.com .metrica small { color: rgba(24, 14, 41, .82); }
+    .card.sem .valor, .card.com .valor { color: #180E29; }
+    .card.sem .metrica, .card.com .metrica { border-bottom-color: rgba(24, 14, 41, .22); }
+
+    /* T6: card de prejuízo acumulado em vermelho */
+    .card.metrica-grande { background: var(--vermelho); border: none; color: #180E29; }
+    .card.metrica-grande .suave, .card.metrica-grande .valor { color: #180E29; }
+
+    /* T7: "Dashboard" roxo com os indicadores */
+    .painel-roxo { background: var(--violeta); border-radius: var(--raio); padding: 22px; margin: 4px 0 18px; }
+    .painel-roxo .destaques { margin: 0; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    .painel-roxo .destaque { background: rgba(24, 14, 41, .35); border-color: transparent; }
+    .painel-roxo .destaque small { color: rgba(255, 255, 255, .85); }
+    .painel-roxo .valor.positivo, .painel-roxo .valor.negativo { color: #fff; }
+
+    .filtro.ativo { background: var(--violeta); border-color: var(--violeta); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
     @media (max-width: 600px) {
       body { font-size: 16px; }
       main { padding: 28px 16px 56px; }
@@ -374,22 +474,27 @@
 <body>
   <header>
     <div class="conteudo">
-      <a href="{% url 'simulador:inicio' %}" class="marca" aria-label="Bzu Tech - início do simulador">
-        <img src="/static/simulador/img/logo-bzu-tech-clara.png" alt="Bzu Tech"
-             onerror="this.parentNode.classList.add('sem-imagem')">
-        <span class="logo-texto">Bzu<span>TECH</span></span>
-      </a>
-      {% block cabecalho_direita %}
-        <nav>
-          <a href="{% url 'simulador:inicio' %}">Simulador</a>
-          <a href="{% url 'simulador:ranking' %}">Ranking</a>
-        </nav>
+      {% block marca %}
+        <a href="{% url 'simulador:inicio' %}" class="marca" aria-label="IoTSim - início do simulador">
+          <img src="/static/simulador/img/iotsim-texto.png" alt="IoTSim"
+               onerror="this.parentNode.classList.add('sem-imagem')">
+          <span class="logo-texto">IoT<span>SIM</span></span>
+        </a>
       {% endblock %}
+      <div class="direita">
+        {% block cabecalho_direita %}
+          <nav>
+            <a href="{% url 'simulador:inicio' %}">Simulador</a>
+            <a href="{% url 'simulador:ranking' %}">Ranking</a>
+          </nav>
+        {% endblock %}
+        <span class="marca-bzu"><img src="/static/simulador/img/logo-bzu-tech-clara.png" alt="Bzu Tech"></span>
+      </div>
     </div>
   </header>
   <main>
     {% block conteudo %}{% endblock %}
   </main>
-  <footer>Bzu Tech · Simulador de Decisões IoT · Grupo FDS 10 · Grupo Projetos 1</footer>
+  <footer>Bzu Tech</footer>
 </body>
 </html>

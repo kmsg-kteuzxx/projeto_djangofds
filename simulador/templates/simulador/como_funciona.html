@@ -13,52 +13,39 @@
 {% block conteudo %}
 {# T2 — Como funciona #}
 <section class="estreito">
-  <h1>Como funciona</h1>
-  <p class="lead">Você escolhe o seu segmento e joga {{ total }} rodadas rápidas. Não existe pegadinha: o objetivo é você sentir, na prática, o valor de decidir com dados.</p>
+  <h1 class="centro">Como funciona</h1>
+  <p class="lead centro">Você escolhe o seu segmento e joga {{ total }} rodadas rápidas. Não existe pegadinha: o objetivo é você sentir, na prática, o valor de decidir com dados.</p>
 
   <div class="grade etapas" style="margin-top:24px">
     <div class="card etapa">
-      <div class="icone-quadro">{% include "simulador/_icone.html" with nome="segmentos" %}</div>
-      <span class="numero-etapa">01</span>
-      <h3>Escolha sua trilha</h3>
+      <h3>1. Escolha sua trilha</h3>
       <p>Saúde, indústria, logística, prédios, gestão pública ou agronegócio.</p>
     </div>
     <div class="card etapa">
-      <div class="icone-quadro">{% include "simulador/_icone.html" with nome="situacao" %}</div>
-      <span class="numero-etapa">02</span>
-      <h3>Leia a situação e decida</h3>
+      <h3>2. Leia a situação e decida</h3>
       <p>Um problema real da operação, a opinião da equipe e três ações possíveis.</p>
     </div>
     <div class="card etapa">
-      <div class="icone-quadro">{% include "simulador/_icone.html" with nome="grafico" %}</div>
-      <span class="numero-etapa">03</span>
-      <h3>Veja a consequência</h3>
+      <h3>3. Veja a consequência</h3>
       <p>O resultado da sua decisão lado a lado com o que a IoT mudaria, e a explicação de cada opção.</p>
     </div>
     <div class="card etapa">
-      <div class="icone-quadro">{% include "simulador/_icone.html" with nome="trofeu" %}</div>
-      <span class="numero-etapa">04</span>
-      <h3>Resultado final</h3>
+      <h3>4. Resultado final</h3>
       <p>Sua jornada completa, um diagnóstico do seu segmento e o que a Bzu teria feito diferente.</p>
     </div>
   </div>
 
-  <h2>Como seu desempenho é calculado</h2>
+  <h2>Como seu desempenho é calculado?</h2>
+  {# Protótipo: dois botões; ao clicar, abre a explicação #}
   <div class="grade duas">
-    <div class="card" style="display:flex;gap:16px">
-      <div class="icone-quadro">{% include "simulador/_icone.html" with nome="moeda" %}</div>
-      <div>
-        <h3>Resultado financeiro</h3>
-        <p class="suave" style="margin:0">Quanto a empresa deixa de perder por mês com a sua decisão, já descontado o custo da solução escolhida.</p>
-      </div>
-    </div>
-    <div class="card" style="display:flex;gap:16px">
-      <div class="icone-quadro">{% include "simulador/_icone.html" with nome="trofeu" %}</div>
-      <div>
-        <h3>Pontuação de 0 a 100</h3>
-        <p class="suave" style="margin:0">Mostra quanto do melhor resultado possível com IoT você alcançou na sua trilha. Ela aparece no ranking da equipe.</p>
-      </div>
-    </div>
+    <details class="explica">
+      <summary>Quanto você perdeu?</summary>
+      <p><strong style="color:var(--texto)">Resultado financeiro:</strong> quanto a empresa deixa de perder por mês com a sua decisão, já descontado o custo da solução escolhida.</p>
+    </details>
+    <details class="explica">
+      <summary>Pontuação</summary>
+      <p><strong style="color:var(--texto)">Pontuação de 0 a 100:</strong> mostra quanto do melhor resultado possível com IoT você alcançou na sua trilha. Ela aparece no ranking da equipe.</p>
+    </details>
   </div>
 
   <h2>Antes de começar</h2>
@@ -82,7 +69,7 @@
                  value="{{ valores.empresa|default:'' }}" placeholder="Ex.: Distribuidora Recife">
         </div>
       </div>
-      <button type="submit" class="botao">Iniciar {% include "simulador/_icone.html" with nome="seta" %}</button>
+      <div class="centro"><button type="submit" class="botao">Iniciar</button></div>
     </form>
   </div>
 </section>

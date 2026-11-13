@@ -22,7 +22,6 @@
   <p class="suave">Escolha uma ação para continuar.</p>
 
   <div class="card situacao">
-    <div class="icone-quadro">{% include "simulador/_icone.html" with nome=cenario.icone %}</div>
     <div>
       <span class="suave" style="font-size:.9rem">{{ cenario.setor }}</span>
       <h3>{{ cenario.titulo }}</h3>
@@ -55,7 +54,6 @@
     </p>
     <div class="insight dados-sensor" id="dados-sensor" role="region" aria-label="O que o sensor mostraria"
          tabindex="-1" style="margin-top:24px"{% if not mostrar_dados %} hidden{% endif %}>
-      <div class="icone-quadro">{% include "simulador/_icone.html" with nome="grafico" %}</div>
       <div>
         <strong>O que o sensor mostraria</strong>
         <p style="margin-top:6px">{{ cenario.dados_sensor|linebreaksbr }}</p>

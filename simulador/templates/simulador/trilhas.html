@@ -10,7 +10,7 @@
 {# T3 — Escolha do segmento #}
 <section>
   <div class="estreito centro">
-    <h1>Qual é o seu segmento?</h1>
+    <h1>Escolha seu segmento</h1>
     <p class="lead">
       Escolha a área que mais se parece com a sua empresa, {{ rodada.jogador }}.
       As 5 rodadas trazem situações reais desse segmento.
@@ -21,21 +21,18 @@
 
   <div class="grade trilhas">
     {% for trilha in trilhas %}
-      <article class="trilha-card{% if rodada.trilha_id == trilha.id %} atual{% endif %}">
-        <div class="icone-quadro">{% include "simulador/_icone.html" with nome=trilha.icone %}</div>
-        {% if rodada.trilha_id == trilha.id %}<span class="etiqueta">Em andamento</span>{% endif %}
-        <h3>{{ trilha.nome }}</h3>
-        <p>{{ trilha.descricao }}</p>
-        <span class="exemplos">{{ trilha.exemplos }}</span>
-        <form method="post" action="{% url 'simulador:trilhas' %}">
-          {% csrf_token %}
-          <input type="hidden" name="trilha" value="{{ trilha.slug }}">
-          <button type="submit" class="link-trilha" aria-label="Jogar a trilha {{ trilha.nome }}">
-            {% if rodada.trilha_id == trilha.id %}Continuar essa trilha{% else %}Jogar essa trilha{% endif %}
-            {% include "simulador/_icone.html" with nome="seta" %}
-          </button>
-        </form>
-      </article>
+      {# Protótipo: botões roxos só com o nome; o card inteiro é o botão #}
+      <form method="post" action="{% url 'simulador:trilhas' %}">
+        {% csrf_token %}
+        <input type="hidden" name="trilha" value="{{ trilha.slug }}">
+        <button type="submit" class="trilha-card{% if rodada.trilha_id == trilha.id %} atual{% endif %}"
+                title="{{ trilha.descricao }}">
+          {% if rodada.trilha_id == trilha.id %}<span class="etiqueta">Em andamento</span>{% endif %}
+          <span class="trilha-nome">{{ trilha.nome }}</span>
+          <span class="trilha-exemplos">{{ trilha.exemplos }}</span>
+          <span class="sr-only">{% if rodada.trilha_id == trilha.id %}Continuar essa trilha{% else %}Jogar essa trilha{% endif %}</span>
+        </button>
+      </form>
     {% endfor %}
   </div>
 </section>

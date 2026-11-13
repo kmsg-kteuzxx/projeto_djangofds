@@ -5,6 +5,7 @@
 {% block cabecalho_direita %}
   <nav>
     <a href="{% url 'simulador:gestao_lista' %}">Cenários</a>
+    <a href="{% url 'simulador:gestao_resultados' %}">Resultados</a>
     <a href="{% url 'simulador:inicio' %}">Ver simulador</a>
     <form method="post" action="{% url 'simulador:logout_facilitador' %}" style="display:inline">
       {% csrf_token %}

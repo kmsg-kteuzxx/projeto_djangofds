@@ -1,0 +1,154 @@
+{% extends "simulador/base.html" %}
+
+{% block titulo %}Resultados · Simulador IoT{% endblock %}
+
+{% block cabecalho_direita %}
+  <nav>
+    <a href="{% url 'simulador:gestao_lista' %}">Cenários</a>
+    <a href="{% url 'simulador:gestao_resultados' %}" aria-current="page">Resultados</a>
+    <a href="{% url 'simulador:inicio' %}">Ver simulador</a>
+    <form method="post" action="{% url 'simulador:logout_facilitador' %}" style="display:inline">
+      {% csrf_token %}
+      <button type="submit" class="link-sair">Sair</button>
+    </form>
+  </nav>
+{% endblock %}
+
+{% block estilos %}
+<style>
+  .link-sair { background: none; border: none; cursor: pointer; margin-left: 20px; padding: 0; font: 500 1rem var(--fonte-texto); color: var(--suave); }
+  .link-sair:hover { color: var(--texto); }
+  header nav a[aria-current="page"] { color: var(--texto); }
+  .filtros-painel { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
+  .filtros-painel .campo { margin: 0; flex: 1 1 170px; }
+  .filtros-painel select, .filtros-painel input[type=date] {
+    width: 100%; min-height: 48px; padding: 10px 12px; font: 1rem var(--fonte-texto); color: var(--texto);
+    background: rgba(24, 14, 41, .7); border: 1px solid var(--borda); border-radius: var(--raio-pequeno); color-scheme: dark;
+  }
+  .filtros-painel .botao { min-height: 48px; }
+  .barra-mini { height: 8px; border-radius: 999px; background: rgba(62, 43, 99, .7); overflow: hidden; min-width: 80px; margin-top: 6px; }
+  .barra-mini span { display: block; height: 100%; background: linear-gradient(90deg, var(--violeta), var(--purpura)); }
+  tr.atencao td { background: rgba(239, 68, 68, .08); }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+<section>
+  <span class="badge">Área do facilitador</span>
+  <h1>Resultados das partidas</h1>
+  <p class="lead">Veja quem termina, onde as pessoas desistem e em quais cenários a solução IoT ainda não convence.</p>
+
+  {# Critério 6: filtros por trilha e período #}
+  <form method="get" class="card filtros-painel" aria-label="Filtros">
+    <div class="campo">
+      <label for="trilha">Trilha</label>
+      <select id="trilha" name="trilha">
+        <option value="">Todas</option>
+        {% for t in trilhas %}
+          <option value="{{ t.slug }}"{% if filtros.trilha == t %} selected{% endif %}>{{ t.nome }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="campo">
+      <label for="inicio">De</label>
+      <input type="date" id="inicio" name="inicio" value="{{ filtros.inicio|date:'Y-m-d' }}">
+    </div>
+    <div class="campo">
+      <label for="fim">Até</label>
+      <input type="date" id="fim" name="fim" value="{{ filtros.fim|date:'Y-m-d' }}">
+    </div>
+    <button type="submit" class="botao">Filtrar</button>
+    <a class="botao secundario" href="{% url 'simulador:gestao_resultados' %}">Limpar</a>
+  </form>
+
+  {% for erro in erros %}
+    <div class="erro" role="alert">{{ erro }}</div>
+  {% endfor %}
+
+  {% if not tem_dados %}
+    {# Critério 8: sem dados, mensagem e nada quebra #}
+    <div class="card centro">
+      <p style="margin:0">Nenhuma rodada foi iniciada {% if filtros.trilha or filtros.inicio or filtros.fim %}com esses filtros{% else %}ainda{% endif %}. Quando alguém jogar, os números aparecem aqui.</p>
+    </div>
+  {% else %}
+
+    {% if atencao %}
+      {# Critério 5: ponto de atenção #}
+      <div class="insight" role="status">
+        <div>
+          <strong>Ponto de atenção: {{ atencao.cenario.titulo }}</strong>
+          <p>Só {{ atencao.adocao }}% das pessoas escolheram a solução IoT neste cenário. Vale revisar o texto do problema, as alternativas ou os dados do sensor.</p>
+        </div>
+      </div>
+    {% endif %}
+
+    {# Critérios 2 e 3 #}
+    <h2>Por trilha</h2>
+    <div class="card tabela-rolavel">
+      <table class="ranking">
+        <thead>
+          <tr>
+            <th>Trilha</th>
+            <th class="num">Iniciadas</th>
+            <th class="num">Finalizadas</th>
+            <th class="num">Conclusão</th>
+            <th class="num">Pontuação média</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for linha in linhas_trilha %}
+            <tr>
+              <td>{{ linha.trilha.nome }}</td>
+              <td class="num">{{ linha.iniciadas }}</td>
+              <td class="num">{{ linha.finalizadas }}</td>
+              <td class="num">{{ linha.conclusao }}%
+                <div class="barra-mini" aria-hidden="true"><span style="width:{{ linha.conclusao }}%"></span></div>
+              </td>
+              <td class="num">{% if linha.media is None %}–{% else %}{{ linha.media }}{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# Critérios 4 e 5 #}
+    <div class="topo-gestao" style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap">
+      <h2>Por cenário</h2>
+      {# Critério 7 #}
+      <a class="botao secundario" href="?{{ query_csv }}" style="margin-bottom:12px">Exportar CSV</a>
+    </div>
+    {% if linhas_cenario %}
+      <div class="card tabela-rolavel">
+        <table class="ranking">
+          <thead>
+            <tr>
+              <th>Trilha · rodada</th>
+              <th>Cenário</th>
+              <th class="num">Decisões</th>
+              <th class="num">Adoção de IoT</th>
+              <th class="num">Desistências</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for linha in linhas_cenario %}
+              <tr{% if linha.atencao %} class="atencao"{% endif %}>
+                <td>{{ linha.cenario.trilha.nome|default:"Sem trilha" }} · {{ linha.cenario.ordem }}</td>
+                <td>
+                  {{ linha.cenario.titulo }}
+                  {% if linha.atencao %}<br><span class="etiqueta vermelha">Ponto de atenção</span>{% endif %}
+                </td>
+                <td class="num">{{ linha.decisoes }}</td>
+                <td class="num">{% if linha.adocao is None %}–{% else %}{{ linha.adocao }}%{% endif %}</td>
+                <td class="num">{{ linha.desistencias }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="suave"><small>Desistência = rodada não finalizada que parou neste cenário (o primeiro da trilha ainda sem resposta). Partidas em andamento também contam aqui até serem finalizadas.</small></p>
+    {% else %}
+      <div class="card centro"><p style="margin:0">Ninguém respondeu cenários com esses filtros ainda.</p></div>
+    {% endif %}
+  {% endif %}
+</section>
+{% endblock %}

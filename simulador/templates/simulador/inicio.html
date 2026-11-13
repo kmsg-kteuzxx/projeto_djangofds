@@ -1,16 +1,18 @@
 {% extends "simulador/base.html" %}
 
-{% block titulo %}Simulador IoT · Bzu Tech{% endblock %}
+{% block titulo %}IoTSim · Simulador de decisões · Bzu Tech{% endblock %}
+
+{# T1: o logo grande já está no centro da tela, então o cabeçalho não repete o IoTSim #}
+{% block marca %}<span></span>{% endblock %}
 
 {% block conteudo %}
 {# T1 — Tela de abertura #}
 <section class="estreito centro">
-  <span class="badge">Simulador IoT</span>
-
-  <div class="icone-circulo">{% include "simulador/_icone.html" with nome="sensor" %}</div>
-
-  <h1 class="titulo-abertura">Simulador de decisões</h1>
-  <p class="lead">
+  <h1 style="margin:0">
+    <img class="logo-abertura" src="/static/simulador/img/iotsim-logo.png"
+         alt="IoTSim, simulador de decisões com IoT" width="1000" height="280">
+  </h1>
+  <p class="lead" style="color:var(--texto)">
     Você vai assumir o papel de gestor de uma empresa. Escolha o seu segmento entre
     {{ total_trilhas }} trilhas e enfrente <strong>{{ total }} situações reais</strong> do dia a dia,
     como uma câmara fria que estraga produtos ou uma máquina que para sem avisar.
@@ -20,7 +22,7 @@
 
   <div class="acoes">
     <a class="botao" href="{% url 'simulador:como_funciona' %}">
-      Começar {% include "simulador/_icone.html" with nome="seta" %}
+      Começar
     </a>
   </div>
 
@@ -32,9 +34,6 @@
     </p>
   {% endif %}
 
-  <div class="tempo">
-    {% include "simulador/_icone.html" with nome="relogio" %}
-    Tempo estimado: cerca de {{ minutos }} minutos
-  </div>
+  <p class="tempo suave">Tempo estimado da simulação: cerca de {{ minutos }} minutos</p>
 </section>
 {% endblock %}

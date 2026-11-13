@@ -7,9 +7,9 @@
 <section>
   <div class="estreito centro">
     <span class="badge verde">Simulação concluída</span>
-    <h1 class="titulo-abertura">Veja o que a Bzu teria feito diferente</h1>
+    <h1>Diferenças</h1>
     <p class="lead">
-      Relatório de aprendizado da <strong>{{ rodada.empresa }}</strong> · rodada de
+      Veja o que a Bzu teria feito diferente. Relatório de aprendizado da <strong>{{ rodada.empresa }}</strong> · rodada de
       <strong>{{ rodada.jogador }}</strong>{% if trilha %} na trilha {{ trilha.nome }}{% endif %}{% if rodada.finalizada_em %} em {{ rodada.finalizada_em|date:"d/m/Y" }}{% endif %}.
     </p>
   </div>
@@ -36,7 +36,6 @@
   </div>
 
   <div class="card diagnostico">
-    <div class="icone-quadro">{% include "simulador/_icone.html" with nome=trilha.icone|default:"grafico" %}</div>
     <div>
       <span class="rotulo" style="color:#C4B5FD">Diagnóstico</span>
       <h3>Diagnóstico para {% if trilha %}{{ trilha.nome }}{% else %}a sua empresa{% endif %}</h3>
@@ -44,12 +43,15 @@
     </div>
   </div>
 
+  {# Protótipo: bloco "Dashboard" roxo com os indicadores #}
+  <div class="painel-roxo">
   <div class="destaques">
     <div class="destaque"><small>Pontuação</small><span class="valor">{{ pontuacao }}/100</span></div>
     <div class="destaque"><small>Decisões baseadas em dados</small><span class="valor">{{ acertos_iot }} de {{ total }}</span></div>
     <div class="destaque"><small>Consultou os dados do sensor</small><span class="valor">{{ decisoes_com_dados }} de {{ total }}</span></div>
     <div class="destaque"><small>Seu resultado em 1 ano</small><span class="valor {% if resultado_positivo %}positivo{% else %}negativo{% endif %}">{{ resultado_anual_fmt }}</span></div>
     <div class="destaque"><small>A mais com IoT em 1 ano</small><span class="valor positivo">{{ diferenca_anual_fmt }}</span></div>
+  </div>
   </div>
 
   <h2>Revise suas decisões</h2>
@@ -59,7 +61,6 @@
     <details class="aprendizado">
       <summary>
         <span class="resumo-rodada">
-          <span class="icone-quadro">{% include "simulador/_icone.html" with nome=item.cenario.icone %}</span>
           <span>
             <span class="suave" style="font-size:.85rem;font-family:var(--fonte-dados)">RODADA {{ forloop.counter }} · {{ item.cenario.setor }}</span><br>
             <strong>{{ item.cenario.titulo }}</strong><br>
@@ -98,7 +99,7 @@
   <div class="acoes" style="justify-content:center">
     <a class="botao" href="https://www.bzutech.com.br" target="_blank" rel="noopener">Quero saber mais sobre a Bzu Tech</a>
     {% if eh_meu %}
-      <a class="botao secundario" href="{% url 'simulador:inicio' %}">Refazer simulação</a>
+      <a class="botao" href="{% url 'simulador:inicio' %}">Refazer simulação</a>
     {% endif %}
     <a class="botao secundario" href="{% url 'simulador:ranking' %}{% if trilha %}?trilha={{ trilha.slug }}{% endif %}">Ver ranking da equipe</a>
   </div>

@@ -21,7 +21,7 @@ A pesquisa mostrou que **as empresas reconhecem o valor dos dados, mas não sabe
 | 3 | Trilhas de cenários por setor | ✅ Entrega 03 |
 | 4 | Gestão de cenários pelo facilitador | ✅ Entrega 04 |
 | 5 | Dados do sensor antes da decisão | ✅ Entrega 04 |
-| 6 | Painel de resultados do facilitador | Entrega 04 |
+| 6 | Painel de resultados do facilitador | ✅ Entrega 04 |
 
 **Regra para todas as histórias:** cada uma lê e/ou grava dados no banco de dados.
 
@@ -349,7 +349,7 @@ A pesquisa mostrou que **as empresas reconhecem o valor dos dados, mas não sabe
 
 ---
 
-## História 6 — Painel de resultados do facilitador (Entrega 04)
+## História 6 — Painel de resultados do facilitador (Entrega 04) ✅
 
 **Como** facilitador da Bzu Tech,
 **eu quero** acompanhar, dentro da minha área de gestão, como as pessoas estão jogando (quem termina, onde desiste e quanto usa IoT),
@@ -411,4 +411,4 @@ A pesquisa mostrou que **as empresas reconhecem o valor dos dados, mas não sabe
 
 ---
 
-> Os cenários das histórias 1 a 5 são verificados pelos testes automáticos em `simulador/tests.py` (`python manage.py test simulador`).
+> Os cenários das histórias 1 a 6 são verificados pelos testes automáticos em `simulador/tests.py` (`python manage.py test simulador`).

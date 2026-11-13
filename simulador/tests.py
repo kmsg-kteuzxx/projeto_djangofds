@@ -95,7 +95,7 @@ class H1SimuladorDeDecisoesTest(Base):
         self.comecar()
         resposta = self.client.post(reverse("simulador:cenario", args=[1]), {"opcao": "a"}, follow=True)
         opcao = Cenario.objects.get(numero=1).opcoes.get(letra="a")
-        self.assertContains(resposta, "Veja o que aconteceu")
+        self.assertContains(resposta, "O que aconteceu?")
         self.assertContains(resposta, "Sem IoT · Sua decisão")
         self.assertContains(resposta, reais(opcao.custo))
         self.assertContains(resposta, reais(opcao.perda_restante))
@@ -307,7 +307,7 @@ class T3EscolhaDaTrilhaTest(Base):
     def test_depois_de_se_identificar_vejo_os_seis_segmentos(self):
         self.comecar(trilha=None)
         resposta = self.client.get(reverse("simulador:trilhas"))
-        self.assertContains(resposta, "Qual é o seu segmento?")
+        self.assertContains(resposta, "Escolha seu segmento")
         self.assertContains(resposta, "Jogar essa trilha", count=6)
         for trilha in Trilha.objects.all():
             self.assertContains(resposta, trilha.nome)
@@ -766,3 +766,148 @@ class H5TodosOsCenariosTemDadosTest(Base):
     def test_todos_os_cenarios_iniciais_tem_dados_do_sensor(self):
         sem_dados = Cenario.objects.filter(dados_sensor="").values_list("numero", flat=True)
         self.assertEqual(list(sem_dados), [])
+
+
+# ---------------------------------------------------------------- História 6
+
+class H6PainelDeResultadosTest(Base):
+    """História 6: painel de resultados do facilitador."""
+
+    def setUp(self):
+        self.facilitador = User.objects.create_user("fac6", password="senha-forte-123")
+        self.facilitador.groups.add(Group.objects.get(name="Facilitadores"))
+
+    def entrar(self):
+        self.client.login(username="fac6", password="senha-forte-123")
+
+    def url(self, **filtros):
+        from urllib.parse import urlencode
+        base = reverse("simulador:gestao_resultados")
+        return f"{base}?{urlencode(filtros)}" if filtros else base
+
+    def rodada(self, trilha="saude", respostas=(), finalizada=False, iot=False):
+        """Cria uma rodada direto no banco respondendo os N primeiros cenários da trilha."""
+        trilha_obj = Trilha.objects.get(slug=trilha)
+        rodada = Rodada.objects.create(jogador="J", empresa="E", trilha=trilha_obj)
+        for cenario in list(self.cenarios_da_trilha(trilha))[:respostas]:
+            Decisao.objects.create(rodada=rodada, cenario=cenario, opcao=cenario.opcoes.filter(usa_iot=iot).first())
+        if finalizada:
+            from django.utils import timezone
+            rodada.finalizada_em = timezone.now()
+            rodada.save()
+        return rodada
+
+    def linha_cenario(self, resposta, cenario):
+        return next(l for l in resposta.context["linhas_cenario"] if l["cenario"] == cenario)
+
+    # 6.1
+    def test_painel_abre_pelo_menu_do_facilitador(self):
+        self.entrar()
+        lista = self.client.get(reverse("simulador:gestao_lista"))
+        self.assertContains(lista, f'href="{reverse("simulador:gestao_resultados")}"')
+        self.assertEqual(self.client.get(self.url()).status_code, 200)
+
+    # 6.2
+    def test_sem_login_vai_para_a_tela_de_login(self):
+        resposta = self.client.get(self.url())
+        self.assertRedirects(resposta, f'{reverse("simulador:login_facilitador")}?next={self.url()}',
+                             fetch_redirect_response=False)
+
+    def test_logado_sem_ser_facilitador_recebe_403(self):
+        User.objects.create_user("comum", password="senha-forte-123")
+        self.client.login(username="comum", password="senha-forte-123")
+        self.assertEqual(self.client.get(self.url()).status_code, 403)
+
+    # 6.3
+    def test_taxa_de_conclusao_por_trilha(self):
+        total = self.cenarios_da_trilha().count()
+        for _ in range(4):
+            self.rodada(respostas=total, finalizada=True, iot=True)
+        for _ in range(6):
+            self.rodada(respostas=1)
+        self.entrar()
+        linha = self.client.get(self.url()).context["linhas_trilha"][0]
+        self.assertEqual((linha["iniciadas"], linha["finalizadas"], linha["conclusao"]), (10, 4, 40))
+        self.assertEqual(linha["media"], 100)
+
+    # 6.4
+    def test_ponto_de_desistencia(self):
+        terceiro = list(self.cenarios_da_trilha())[2]
+        for _ in range(3):
+            self.rodada(respostas=2)  # respondeu 2, parou no 3º
+        self.entrar()
+        resposta = self.client.get(self.url())
+        self.assertEqual(self.linha_cenario(resposta, terceiro)["desistencias"], 3)
+
+    # 6.5
+    def test_cenario_com_menor_adocao_de_iot_e_ponto_de_atencao(self):
+        primeiro, segundo = list(self.cenarios_da_trilha())[:2]
+        rodada = self.rodada(respostas=2, iot=True)
+        for _ in range(3):  # no 2º cenário quase ninguém escolhe IoT
+            outra = self.rodada(respostas=1, iot=True)
+            Decisao.objects.create(rodada=outra, cenario=segundo, opcao=segundo.opcoes.filter(usa_iot=False).first())
+        self.entrar()
+        resposta = self.client.get(self.url())
+        self.assertEqual(resposta.context["atencao"]["cenario"], segundo)
+        self.assertEqual(self.linha_cenario(resposta, segundo)["adocao"], 25)
+        self.assertEqual(self.linha_cenario(resposta, primeiro)["adocao"], 100)
+        self.assertContains(resposta, "Ponto de atenção")
+
+    # 6.6
+    def test_filtrar_por_trilha_e_periodo(self):
+        from datetime import timedelta
+        from django.utils import timezone
+        self.rodada("saude", respostas=1)
+        self.rodada("industria", respostas=1)
+        antiga = self.rodada("saude", respostas=1)
+        Rodada.objects.filter(pk=antiga.pk).update(iniciada_em=timezone.now() - timedelta(days=60))
+        self.entrar()
+        hoje = timezone.localdate()
+        resposta = self.client.get(self.url(trilha="saude", inicio=hoje.replace(day=1).isoformat(), fim=hoje.isoformat()))
+        linhas = resposta.context["linhas_trilha"]
+        self.assertEqual([(l["trilha"].slug, l["iniciadas"]) for l in linhas], [("saude", 1)])
+        self.assertTrue(all(l["cenario"].trilha.slug == "saude" for l in resposta.context["linhas_cenario"]))
+
+    def test_data_invalida_mostra_erro_e_nao_quebra(self):
+        self.entrar()
+        resposta = self.client.get(self.url(inicio="2026-13-40"))
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, "Data inicial inválida")
+
+    def test_data_inicial_depois_da_final_mostra_erro(self):
+        self.entrar()
+        resposta = self.client.get(self.url(inicio="2026-11-30", fim="2026-11-01"))
+        self.assertContains(resposta, "não pode ser depois")
+
+    # 6.7
+    def test_exportar_csv_com_a_tabela_filtrada(self):
+        self.rodada("saude", respostas=1)
+        self.rodada("industria", respostas=1)
+        self.entrar()
+        resposta = self.client.get(self.url(trilha="saude", formato="csv"))
+        self.assertEqual(resposta["Content-Type"], "text/csv; charset=utf-8")
+        self.assertIn("attachment", resposta["Content-Disposition"])
+        texto = resposta.content.decode("utf-8-sig")
+        linhas = [l for l in texto.splitlines() if l]
+        self.assertTrue(linhas[0].startswith("Trilha;Rodada;Cenário"))
+        primeiro, segundo = list(self.cenarios_da_trilha())[:2]
+        # cabeçalho + 1º cenário (1 decisão) + 2º cenário (1 desistência); nada da indústria
+        self.assertEqual(len(linhas), 3)
+        self.assertIn(primeiro.titulo, linhas[1])
+        self.assertIn(segundo.titulo, linhas[2])
+        self.assertTrue(linhas[2].endswith(";1;"))
+
+    # 6.8
+    def test_sem_dados_mostra_mensagem(self):
+        self.entrar()
+        resposta = self.client.get(self.url())
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, "Nenhuma rodada foi iniciada")
+
+    def test_painel_so_le_o_banco(self):
+        self.rodada(respostas=2)
+        self.entrar()
+        antes = (Rodada.objects.count(), Decisao.objects.count())
+        self.client.get(self.url())
+        self.client.get(self.url(formato="csv"))
+        self.assertEqual((Rodada.objects.count(), Decisao.objects.count()), antes)

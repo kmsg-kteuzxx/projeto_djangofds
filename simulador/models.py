@@ -193,10 +193,17 @@ class Rodada(models.Model):
         Pontuação de 0 a 100: quanto do resultado possível com IoT o jogador alcançou
         nas rodadas da trilha escolhida.
         """
+        # Uma consulta só para as alternativas IoT de todos os cenários (antes era uma por cenário).
         ideal = 0
-        for cenario in self.cenarios():
-            iot = cenario.opcao_iot()
-            if iot:
+        vistos = set()
+        opcoes_iot = (
+            Opcao.objects.filter(cenario__in=self.cenarios(), usa_iot=True)
+            .select_related("cenario")
+            .order_by("cenario_id", "letra")
+        )
+        for iot in opcoes_iot:
+            if iot.cenario_id not in vistos:  # mesma regra de opcao_iot(): a 1ª por letra
+                vistos.add(iot.cenario_id)
                 ideal += iot.resultado
         if ideal <= 0:
             return 0
