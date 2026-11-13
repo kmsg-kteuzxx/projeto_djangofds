@@ -52,6 +52,11 @@ def criar_navegador():
 # Os testes não rodam collectstatic: serve os estáticos direto das pastas dos apps.
 @override_settings(STATICFILES_STORAGE="django.contrib.staticfiles.storage.StaticFilesStorage")
 class E2EBase(StaticLiveServerTestCase):
+    # O servidor de teste esvazia o banco depois de cada teste, inclusive os
+    # cenários, trilhas e o grupo Facilitadores criados pelas migrações.
+    # Isto restaura esses dados antes de cada teste.
+    serialized_rollback = True
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
