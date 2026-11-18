@@ -182,11 +182,13 @@ O pipeline fica em [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml) 
 2. **Testes:** roda os testes de unidade e depois os testes E2E com Selenium (Chrome e ChromeDriver instalados no próprio pipeline).
 3. **Deploy:** só se todos os testes passarem e o push for na `main`, o pipeline pede o deploy ao Render pelo Deploy Hook. Teste falhando = nada vai para o ar.
 
-🎥 **Screencast do CI/CD (build, testes e deploy):** _(link do YouTube)_
+🎥 **Screencast do CI/CD (build, testes e deploy):** https://www.youtube.com/watch?v=0HCVy8zLvYE
 
 🎥 **Screencast do site com as novas historias:** https://www.youtube.com/watch?v=sHtW90qmNMQ
 
-📋 **Quadro da Sprint 04 (JIRA):** _(print do quadro)_
+📋 **Quadro da Sprint 04 (JIRA):** <img width="1208" height="476" alt="image" src="https://github.com/user-attachments/assets/1f3c39bb-0a80-4f20-872d-321e0fc51871" />
+
+
 
 ---
 
