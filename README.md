@@ -2,7 +2,6 @@
 
 **Grupo FDS:** 10 · **Grupo Projetos:** 1
 
-**Status do Projeto:** 🛠️ Em desenvolvimento (Entrega 04 – Testes Automatizados e CI/CD)
 
 ---
 
