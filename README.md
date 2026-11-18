@@ -184,7 +184,7 @@ O pipeline fica em [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml) 
 
 🎥 **Screencast do CI/CD (build, testes e deploy):** _(link do YouTube)_
 
-🎥 **Screencast do deploy das novas histórias:** _(link do YouTube)_
+🎥 **Screencast do site com as novas historias:** https://www.youtube.com/watch?v=sHtW90qmNMQ
 
 📋 **Quadro da Sprint 04 (JIRA):** _(print do quadro)_
 
@@ -228,6 +228,7 @@ Acesse http://127.0.0.1:8000. Para rodar os testes: `python manage.py test simul
 ## 🎥 Explicação do código do projeto Django - Bzu Tech
 
 [https://youtu.be/AJv6ibi3YPE]
+https://screenrec.com/share/liFQoyUBrb
 
 ---
 
